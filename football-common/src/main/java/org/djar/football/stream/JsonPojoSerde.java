@@ -17,10 +17,6 @@ public class JsonPojoSerde<T> implements Serde<T>, Serializer<T>, Deserializer<T
     private final ObjectMapper mapper;
     private final Class<T> clazz;
 
-    public JsonPojoSerde() {
-        this(null);
-    }
-
     public JsonPojoSerde(Class<T> clazz) {
         this.clazz = clazz;
         mapper = new ObjectMapper();
@@ -30,6 +26,10 @@ public class JsonPojoSerde<T> implements Serde<T>, Serializer<T>, Deserializer<T
         mapper.registerModule(new JSR310Module());
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    }
+
+    public static Serializer newSerializer() {
+        return new JsonPojoSerde(null);
     }
 
     @Override

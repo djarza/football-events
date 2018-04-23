@@ -41,11 +41,6 @@ public class MatchController {
         this.kafkaStreams = kafkaStreams;
     }
 
-    @GetMapping("/matches/{matchId}")
-    public Match getMatches(@PathVariable String matchId) {
-        return findMatch(matchId);
-    }
-
     @PostMapping("/matches")
     @ResponseStatus(HttpStatus.CREATED)
     public void scheduleMatch(@RequestBody NewMatchRequest match) {

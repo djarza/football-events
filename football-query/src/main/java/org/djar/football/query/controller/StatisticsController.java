@@ -8,6 +8,7 @@ import org.apache.kafka.streams.state.QueryableStoreTypes;
 import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
 import org.djar.football.query.model.MatchScore;
 import org.djar.football.query.model.Ranking;
+import org.djar.football.query.projection.MatchStatisticsBuilder;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,8 +19,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class StatisticsController {
 
     private final KafkaStreams streams;
-    private String matchScoreStoreName = "match-scores-store";
-    private String rankingStoreName = "ranking-store";
 
     public StatisticsController(KafkaStreams streams) {
         this.streams = streams;
@@ -27,12 +26,14 @@ public class StatisticsController {
 
     @GetMapping("/matchScores")
     public List<MatchScore> getMatchScores() {
-        return read(streams.store(matchScoreStoreName, QueryableStoreTypes.<String, MatchScore>keyValueStore()));
+        return read(streams.store(MatchStatisticsBuilder.MATCH_SCORES_STORE,
+            QueryableStoreTypes.<String, MatchScore>keyValueStore()));
     }
 
     @GetMapping("/rankings")
     public List<Ranking> getRankings() {
-        return read(streams.store(rankingStoreName, QueryableStoreTypes.<String, Ranking>keyValueStore()));
+        return read(streams.store(MatchStatisticsBuilder.RANKING_STORE,
+            QueryableStoreTypes.<String, Ranking>keyValueStore()));
     }
 
     private <T> List<T> read(ReadOnlyKeyValueStore<String, T> store) {

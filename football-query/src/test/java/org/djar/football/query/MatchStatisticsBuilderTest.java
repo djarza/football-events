@@ -8,12 +8,14 @@ import org.djar.football.event.MatchFinished;
 import org.djar.football.event.MatchStarted;
 import org.djar.football.query.model.MatchScore;
 import org.djar.football.query.model.Ranking;
+import org.djar.football.query.projection.MatchStatisticsBuilder;
 import org.djar.football.test.StreamsTester;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.djar.football.query.projection.MatchStatisticsBuilder.*;
 
 public class MatchStatisticsBuilderTest {
 
@@ -39,8 +41,8 @@ public class MatchStatisticsBuilderTest {
         tester.sendEvents("goal-scored.json", GoalScored.class);
         tester.sendEvents("match-finished.json", MatchFinished.class);
 
-        ReadOnlyKeyValueStore<String, MatchScore> matchStore = tester.getStore(stats.getMatchScoresStore());
-        ReadOnlyKeyValueStore<String, Ranking> rankingStore = tester.getStore(stats.getRankingStore());
+        ReadOnlyKeyValueStore<String, MatchScore> matchStore = tester.getStore(MATCH_SCORES_STORE);
+        ReadOnlyKeyValueStore<String, Ranking> rankingStore = tester.getStore(RANKING_STORE);
 
         assertThat(tester.count(rankingStore)).isEqualTo(24);
         assertThat(tester.count(matchStore)).isEqualTo(22);

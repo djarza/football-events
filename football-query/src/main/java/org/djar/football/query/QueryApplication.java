@@ -3,6 +3,7 @@ package org.djar.football.query;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
+import org.djar.football.query.projection.MatchStatisticsBuilder;
 import org.djar.football.stream.KafkaStreamsStarter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
