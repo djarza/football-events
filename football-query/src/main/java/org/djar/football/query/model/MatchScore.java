@@ -1,6 +1,7 @@
 package org.djar.football.query.model;
 
 import java.util.Objects;
+import org.djar.football.event.GoalScored;
 
 public class MatchScore {
 
@@ -12,11 +13,9 @@ public class MatchScore {
     public MatchScore() {
     }
 
-    public MatchScore(String homeClubId, String awayClubId, int homeGoals, int awayGoals) {
+    public MatchScore(String homeClubId, String awayClubId) {
         this.homeClubId = homeClubId;
         this.awayClubId = awayClubId;
-        this.homeGoals = homeGoals;
-        this.awayGoals = awayGoals;
     }
 
     public MatchScore aggregate(MatchScore other) {
@@ -27,6 +26,26 @@ public class MatchScore {
         awayGoals += other.awayGoals;
 
         return this;
+    }
+
+    private void assertEquals(Object thisValue, Object otherValue, String name) {
+        if (!Objects.equals(thisValue, otherValue)) {
+            throw new IllegalArgumentException("Expected " + name + ": " + thisValue + ", found: " + otherValue);
+        }
+    }
+
+    public void count(GoalScored goal) {
+        if (goal == null) {
+            return;
+        }
+        if (homeClubId.equals(goal.getScoredFor())) {
+            homeGoals++;
+        } else if (awayClubId.equals(goal.getScoredFor())) {
+            awayGoals++;
+        } else {
+            throw new IllegalArgumentException("Goal is not assignet to match, home club: " + homeClubId
+                + ", away club: " + awayClubId + ", goal id: " + goal.getGoalId());
+        }
     }
 
     public Ranking homeRanking() {
@@ -43,12 +62,6 @@ public class MatchScore {
         int drawn = result == 0 ? 1 : 0;
         int lose = result < 0 ? 1 : 0;
         return new Ranking(1, won, drawn, lose, goalsFor, goalsAgainst);
-    }
-
-    private void assertEquals(Object thisValue, Object otherValue, String name) {
-        if (!Objects.equals(thisValue, otherValue)) {
-            throw new IllegalArgumentException("Expected " + name + ": " + thisValue + ", found: " + otherValue);
-        }
     }
 
     public String getHomeClubId() {

@@ -66,19 +66,18 @@ public class MatchStatisticsBuilder {
         // new key: matchId
         KStream<String, GoalScored> goalStream = builder.stream(
                 GOAL_SCORED_TOPIC, Consumed.with(Serdes.String(), goalScoredSerde))
-                .map((eventId, goal) -> pair(goal.getMatchId(), goal));
+                .map((eventId, goalScored) -> pair(goalScored.getMatchId(), goalScored));
 
         // new key: matchId
         KStream<String, MatchFinished> matchFinishedStream = builder.stream(
                 MATCH_FINISHED_TOPIC, Consumed.with(Serdes.String(), matchFinishedSerde))
                 .map((eventId, matchFinished) -> pair(matchFinished.getMatchId(), matchFinished));
 
-        KStream<String, MatchScore> scoreStream = matchStartedStream.leftJoin(
-                goalStream, (matchStarted, goal) -> {
-                    int homeGoals = matchStarted.scoredForHomeClub(goal) ? 1 : 0;
-                    int awayGoals = matchStarted.scoredForAwayClub(goal) ? 1 : 0;
-                    return new MatchScore(matchStarted.getHomeClubId(), matchStarted.getAwayClubId(), homeGoals,
-                        awayGoals);
+        KStream<String, MatchScore> scoreStream = matchStartedStream.leftJoin(goalStream,
+                (matchStarted, goalScored) -> {
+                    MatchScore score = new MatchScore(matchStarted.getHomeClubId(), matchStarted.getAwayClubId());
+                    score.count(goalScored);
+                    return score;
                 },
                 JoinWindows.of(matchGoalTimeDifference), Joined.with(Serdes.String(), matchStartedSerde,
                     goalScoredSerde)
@@ -93,15 +92,16 @@ public class MatchStatisticsBuilder {
         );
 
         // new key: clubId
-        KStream<String, Ranking> rankingStream = finalScoreStream.flatMap((clubId, score) -> {
-            Collection<KeyValue<String, Ranking>> result = new LinkedList<>();
-            result.add(pair(score.getHomeClubId(), score.homeRanking()));
-            result.add(pair(score.getAwayClubId(), score.awayRanking()));
-            return result;
-        });
+        KStream<String, Ranking> rankingStream = finalScoreStream.flatMap(
+                (clubId, matchScore) -> {
+                    Collection<KeyValue<String, Ranking>> result = new LinkedList<>();
+                    result.add(pair(matchScore.getHomeClubId(), matchScore.homeRanking()));
+                    result.add(pair(matchScore.getAwayClubId(), matchScore.awayRanking()));
+                    return result;
+                });
 
-        KTable<String, Ranking> rankingTable = rankingStream.groupByKey(Serialized.with(Serdes.String(), rankingSerde))
-                .reduce(Ranking::aggregate, materialized(RANKING_STORE, rankingSerde));
+        rankingStream.groupByKey(Serialized.with(Serdes.String(), rankingSerde)).reduce(
+                Ranking::aggregate, materialized(RANKING_STORE, rankingSerde));
     }
 
     private <V> Materialized<String, V, KeyValueStore<Bytes, byte[]>> materialized(String storeName, Serde<V> serde) {
