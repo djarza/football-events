@@ -17,6 +17,10 @@ public class JsonPojoSerde<T> implements Serde<T>, Serializer<T>, Deserializer<T
     private final ObjectMapper mapper;
     private final Class<T> clazz;
 
+    public JsonPojoSerde() {
+        this(null);
+    }
+
     public JsonPojoSerde(Class<T> clazz) {
         this.clazz = clazz;
         mapper = new ObjectMapper();

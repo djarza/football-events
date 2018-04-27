@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration scan="true" scanPeriod="5 seconds">
     <logger name="org.apache.kafka" level="warn"/>
-    <logger name="org.jadom" level="debug"/>
+    <logger name="org.djar" level="debug"/>
 
     <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>

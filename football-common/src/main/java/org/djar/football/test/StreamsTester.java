@@ -60,7 +60,7 @@ public class StreamsTester {
 
     public void sendEvents(Event[] events) {
         ConsumerRecordFactory<String, Event> factory = new ConsumerRecordFactory<>(
-                new StringSerializer(), JsonPojoSerde.newSerializer());
+                new StringSerializer(), new JsonPojoSerde());
         int eventSeq = 1;
 
         for (Event event : events) {

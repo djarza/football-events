@@ -1,0 +1,36 @@
+version: '3'
+services:
+    zookeeper:
+        ports:
+            - "2181:2181"
+        image: wurstmeister/zookeeper
+    kafka:
+        ports:
+            - "9092:9092"
+        depends_on:
+            - zookeeper
+        environment:
+            KAFKA_ADVERTISED_HOST_NAME: kafka
+            KAFKA_CREATE_TOPICS: "match-started-event:1:1,goal-scored-event:1:1,match-finished-event:1:1"
+            KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+        image: wurstmeister/kafka:1.1.0
+    football-command:
+        container_name: football-command
+        ports:
+            - "8080:8080"
+        depends_on:
+            - kafka
+        build:
+            context: football-command
+            dockerfile: Dockerfile
+        image: football-command:latest
+    football-query:
+        container_name: football-query
+        ports:
+            - "8081:8081"
+        depends_on:
+            - kafka
+        build:
+            context: football-query
+            dockerfile: Dockerfile
+        image: football-query:latest
