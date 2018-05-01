@@ -34,8 +34,8 @@ public class EventHandlerTest {
         tester.sendEvents("match-started.json", MatchStarted.class);
         tester.sendEvents("goal-scored.json", GoalScored.class);
 
-        ReadOnlyKeyValueStore<String, Match> matchStore = tester.getStore("match-store");
-        ReadOnlyKeyValueStore<String, Goal> goalStore = tester.getStore("goal-store");
+        ReadOnlyKeyValueStore<String, Match> matchStore = tester.getStore(EventHandler.MATCH_STORE);
+        ReadOnlyKeyValueStore<String, Goal> goalStore = tester.getStore(EventHandler.GOAL_STORE);
 
         assertThat(tester.count(matchStore)).isEqualTo(24);
 

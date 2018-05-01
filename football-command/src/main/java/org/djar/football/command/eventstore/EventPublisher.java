@@ -20,7 +20,7 @@ public class EventPublisher {
         String eventId = generateId();
         event.setMetadata(new EventMetadata(eventId, null, timestamp, 1));
         String topic = Event.eventName(event.getClass());
-        ProducerRecord<String, Event> record = new ProducerRecord<>(topic, null, timestamp, eventId, event);
+        ProducerRecord<String, Event> record = new ProducerRecord<>(topic, 0, timestamp, eventId, event);
 
         try {
             // send synchronously

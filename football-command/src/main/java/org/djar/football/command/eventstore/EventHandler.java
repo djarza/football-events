@@ -17,15 +17,22 @@ import org.djar.football.event.GoalScored;
 import org.djar.football.event.MatchScheduled;
 import org.djar.football.event.MatchStarted;
 import org.djar.football.stream.JsonPojoSerde;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class EventHandler {
+
+    public static final String MATCH_STORE = "match_store";
+    public static final String GOAL_STORE = "goal_store";
+
+    private static final Logger logger = LoggerFactory.getLogger(EventHandler.class);
 
     public void init(Topology topology) {
         addProcessor(topology, MatchScheduled.class, (eventId, event, store) -> {
             Match match = new Match(event.getMatchId(), event.getStartTime(), new Team(event.getHomeClubId()),
                         new Team(event.getAwayClubId()));
             store.put(match.getId(), match);
-        }, "match-store");
+        }, MATCH_STORE);
 
         addProcessor(topology, MatchStarted.class, (eventId, event, store) -> {
             Match match = (Match)store.get(event.getMatchId());
@@ -35,16 +42,16 @@ public class EventHandler {
             }
             match.setState(Match.State.STARTED);
             store.put(match.getId(), match);
-        }, "match-store");
+        }, MATCH_STORE);
 
         addProcessor(topology, GoalScored.class, (eventId, event, store) -> {
             Goal goal = new Goal(event.getGoalId(), event.getMatchId(), event.getMinute(), event.getScorerId(),
                     event.getScoredFor());
             store.put(goal.getId(), goal);
-        }, "goal-store");
+        }, GOAL_STORE);
 
-        addStore(topology, Match.class, "match-store", new Class[] {MatchScheduled.class, MatchStarted.class});
-        addStore(topology, Goal.class, "goal-store", GoalScored.class);
+        addStore(topology, Match.class, MATCH_STORE, new Class[] {MatchScheduled.class, MatchStarted.class});
+        addStore(topology, Goal.class, GOAL_STORE, GoalScored.class);
     }
 
     private <E extends Event> void addProcessor(Topology topology, Class<E> eventType, EventProcessor<E> proc,

@@ -16,7 +16,7 @@ public abstract class Event {
     }
 
     public static <E extends Event> String eventName(Class<E> eventType) {
-        return eventType.getSimpleName().replaceAll("(.)(\\p{Upper}+)", "$1-$2").toLowerCase() + "-event";
+        return "fb.event." + eventType.getSimpleName().replaceAll("(.)(\\p{Upper}+)", "$1_$2").toLowerCase();
     }
 
     @Override

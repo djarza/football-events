@@ -1,19 +1,28 @@
 version: '3'
 services:
     zookeeper:
+        hostname: zookeeper
         ports:
             - "2181:2181"
         image: wurstmeister/zookeeper
     kafka:
+        hostname: kafka
         ports:
             - "9092:9092"
         depends_on:
             - zookeeper
         environment:
             KAFKA_ADVERTISED_HOST_NAME: kafka
-            KAFKA_CREATE_TOPICS: "match-started-event:1:1,goal-scored-event:1:1,match-finished-event:1:1"
+            KAFKA_ADVERTISED_PORT: 9092
+            KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka:9092"
+            KAFKA_CREATE_TOPICS: "fb.event.match_scheduled:1:1,fb.event.match_started:1:1,fb.event.goal_scored:1:1,fb.event.match_finished:1:1"
             KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+            KAFKA_BROKER_ID: 999
         image: wurstmeister/kafka:1.1.0
+#        image: wurstmeister/kafka
+        container_name: kafka
+        links:
+            - zookeeper
     football-command:
         container_name: football-command
         ports:

@@ -13,6 +13,7 @@ import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
 import org.djar.football.command.domain.Goal;
 import org.djar.football.command.domain.Match;
 import org.djar.football.command.domain.Player;
+import org.djar.football.command.eventstore.EventHandler;
 import org.djar.football.command.eventstore.EventPublisher;
 import org.djar.football.event.GoalScored;
 import org.djar.football.event.MatchFinished;
@@ -87,7 +88,7 @@ public class MatchController {
             throw new RuntimeException("Null matchId");
         }
         ReadOnlyKeyValueStore<String, Match> store = kafkaStreams.store(
-                "match-store", QueryableStoreTypes.<String, Match>keyValueStore());
+                EventHandler.MATCH_STORE, QueryableStoreTypes.<String, Match>keyValueStore());
         Match match = store.get(matchId);
 
         if (match == null) {

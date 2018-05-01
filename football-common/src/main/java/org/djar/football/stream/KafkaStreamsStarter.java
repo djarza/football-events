@@ -32,12 +32,13 @@ public class KafkaStreamsStarter {
         final KafkaStreams kafkaStreams = new KafkaStreams(topology, props);
 
         Runtime.getRuntime().addShutdownHook(new Thread(kafkaStreams::close));
+        kafkaStreams.setUncaughtExceptionHandler((thread, exception) -> logger.error(thread.toString(), exception));
 
         // wait for Kafka to avoid endless REBALANCING problem
         waitForKafka(kafkaBootstrapAddress);
         startStreams(kafkaStreams);
 
-        logger.debug("Kafka Streams started");
+        logger.debug("Kafka Streams connected to " + kafkaBootstrapAddress);
         return kafkaStreams;
     }
 
@@ -51,16 +52,16 @@ public class KafkaStreamsStarter {
             while (true) {
                 ListTopicsResult topics = client.listTopics();
                 Set<String> names = topics.names().get();
-                logger.trace("topics: " + names.toString());
 
                 if (!names.isEmpty()) {
-                    return;
+                    break;
                 }
                 Thread.sleep(CONNECT_RETRY_DELAY);
             }
         } catch (Exception e) {
-            throw new RuntimeException("Kafka connection error", e);
+            throw new RuntimeException("Kafka connection error " + kafkaBootstrapAddress, e);
         }
+        logger.debug("Connected to Kafka " + kafkaBootstrapAddress);
     }
 
     private static void startStreams(KafkaStreams kafkaStreams) {

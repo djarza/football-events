@@ -27,8 +27,8 @@ import org.djar.football.stream.JsonPojoSerde;
 
 public class MatchStatisticsBuilder {
 
-    public static final String MATCH_SCORES_STORE = "match-scores-store";
-    public static final String RANKING_STORE = "ranking-store";
+    public static final String MATCH_SCORES_STORE = "match_scores_store";
+    public static final String RANKING_STORE = "ranking_store";
 
     private static final String MATCH_STARTED_TOPIC = Event.eventName(MatchStarted.class);
     private static final String GOAL_SCORED_TOPIC = Event.eventName(GoalScored.class);
