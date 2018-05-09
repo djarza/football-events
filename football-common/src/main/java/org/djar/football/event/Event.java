@@ -4,8 +4,7 @@ public abstract class Event {
 
     private EventMetadata metadata;
 
-    protected Event() {
-    }
+    public abstract String getAggId();
 
     public EventMetadata getMetadata() {
         return metadata;

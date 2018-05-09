@@ -54,8 +54,8 @@ public class StreamsTester {
         testDriver = new TopologyTestDriver(topology, streamsProps);
     }
 
-    public <T extends Event> void sendEvents(String sourceFileName, Class<T> eventType) {
-        sendEvents(load(sourceFileName, eventType));
+    public <T extends Event> void sendEvents(URL sourceFile, Class<T> eventType) {
+        sendEvents(load(sourceFile, eventType));
     }
 
     public void sendEvents(Event[] events) {
@@ -65,8 +65,7 @@ public class StreamsTester {
 
         for (Event event : events) {
             String topic = Event.eventName(event.getClass());
-            String eventId = String.valueOf(eventSeq++);
-            ConsumerRecord<byte[], byte[]> record = factory.create(topic, eventId, event);
+            ConsumerRecord<byte[], byte[]> record = factory.create(topic, event.getAggId(), event);
             testDriver.pipeInput(record);
         }
     }
@@ -82,7 +81,7 @@ public class StreamsTester {
             } catch (StreamsException e) {
                 // temporary workaround for https://github.com/apache/kafka/pull/4713
                 if (e.getCause() instanceof DirectoryNotEmptyException) {
-                    System.out.println("Ignore this: " + e.getMessage());
+                    // ignore;
                 } else {
                     throw e;
                 }
@@ -102,11 +101,9 @@ public class StreamsTester {
         return count;
     }
 
-    private <T> T[] load(String fileName, Class<T> type) {
-        URL resource = getClass().getClassLoader().getResource(fileName);
-
+    private <T> T[] load(URL resource, Class<T> type) {
         if (resource == null) {
-            throw new RuntimeException("File not found: " + fileName);
+            throw new RuntimeException("File not found: " + resource);
         }
         ObjectMapper mapper = new ObjectMapper();
         // noinspection deprecation

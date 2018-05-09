@@ -1,25 +1,30 @@
 package org.djar.football.event;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 public class MatchScheduled extends Event {
 
     private String matchId;
     private String seasonId;
-    private LocalDate startTime;
+    private LocalDateTime date;
     private String homeClubId;
     private String awayClubId;
 
     private MatchScheduled() {
     }
 
-    public MatchScheduled(String matchId, String seasonId, LocalDate startTime, String homeClubId, String awayClubId) {
+    public MatchScheduled(String matchId, String seasonId, LocalDateTime date, String homeClubId, String awayClubId) {
         this.matchId = Objects.requireNonNull(matchId);
         this.seasonId = seasonId;
-        this.startTime = startTime;
+        this.date = date;
         this.homeClubId = homeClubId;
         this.awayClubId = awayClubId;
+    }
+
+    @Override
+    public String getAggId() {
+        return matchId;
     }
 
     public String getMatchId() {
@@ -30,8 +35,8 @@ public class MatchScheduled extends Event {
         return seasonId;
     }
 
-    public LocalDate getStartTime() {
-        return startTime;
+    public LocalDateTime getDate() {
+        return date;
     }
 
     public String getHomeClubId() {

@@ -58,20 +58,14 @@ public class MatchStatisticsBuilder {
         final JsonPojoSerde<MatchScore> matchScoreSerde = new JsonPojoSerde<>(MatchScore.class);
         final JsonPojoSerde<Ranking> rankingSerde = new JsonPojoSerde<>(Ranking.class);
 
-        // new key: matchId
         KStream<String, MatchStarted> matchStartedStream = builder.stream(
-                MATCH_STARTED_TOPIC, Consumed.with(Serdes.String(), matchStartedSerde))
-                .map((eventId, matchStarted) -> pair(matchStarted.getMatchId(), matchStarted));
+                MATCH_STARTED_TOPIC, Consumed.with(Serdes.String(), matchStartedSerde));
 
-        // new key: matchId
         KStream<String, GoalScored> goalStream = builder.stream(
-                GOAL_SCORED_TOPIC, Consumed.with(Serdes.String(), goalScoredSerde))
-                .map((eventId, goalScored) -> pair(goalScored.getMatchId(), goalScored));
+                GOAL_SCORED_TOPIC, Consumed.with(Serdes.String(), goalScoredSerde));
 
-        // new key: matchId
         KStream<String, MatchFinished> matchFinishedStream = builder.stream(
-                MATCH_FINISHED_TOPIC, Consumed.with(Serdes.String(), matchFinishedSerde))
-                .map((eventId, matchFinished) -> pair(matchFinished.getMatchId(), matchFinished));
+                MATCH_FINISHED_TOPIC, Consumed.with(Serdes.String(), matchFinishedSerde));
 
         KStream<String, MatchScore> scoreStream = matchStartedStream.leftJoin(goalStream,
                 (matchStarted, goalScored) -> {

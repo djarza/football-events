@@ -15,28 +15,40 @@ services:
             KAFKA_ADVERTISED_HOST_NAME: kafka
             KAFKA_ADVERTISED_PORT: 9092
             KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka:9092"
-            KAFKA_CREATE_TOPICS: "fb.event.match_scheduled:1:1,fb.event.match_started:1:1,fb.event.goal_scored:1:1,fb.event.match_finished:1:1"
+            KAFKA_CREATE_TOPICS: "fb.event.match_scheduled:1:1,fb.event.match_started:1:1,fb.event.goal_scored:1:1,fb.event.match_finished:1:1,fb.event.player_started_career:1:1"
             KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
             KAFKA_BROKER_ID: 999
         image: wurstmeister/kafka:1.1.0
-#        image: wurstmeister/kafka
         container_name: kafka
         links:
             - zookeeper
-    football-command:
-        container_name: football-command
+
+    football-match:
+        container_name: football-match
         ports:
-            - "8080:8080"
+            - "8081:8081"
         depends_on:
             - kafka
         build:
-            context: football-command
+            context: football-match
             dockerfile: Dockerfile
-        image: football-command:latest
+        image: football-match:latest
+
+    football-player:
+        container_name: football-player
+        ports:
+            - "8082:8082"
+        depends_on:
+            - kafka
+        build:
+            context: football-player
+            dockerfile: Dockerfile
+        image: football-player:latest
+
     football-query:
         container_name: football-query
         ports:
-            - "8081:8081"
+            - "8080:8080"
         depends_on:
             - kafka
         build:

@@ -25,6 +25,11 @@ public class MatchStarted extends Event {
         return goal != null && awayClubId.equals(goal.getScoredFor());
     }
 
+    @Override
+    public String getAggId() {
+        return matchId;
+    }
+
     public String getMatchId() {
         return matchId;
     }

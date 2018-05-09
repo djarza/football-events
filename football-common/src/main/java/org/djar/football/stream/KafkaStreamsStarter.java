@@ -38,7 +38,7 @@ public class KafkaStreamsStarter {
         waitForKafka(kafkaBootstrapAddress);
         startStreams(kafkaStreams);
 
-        logger.debug("Kafka Streams connected to " + kafkaBootstrapAddress);
+        logger.debug("Kafka Streams started: {}", kafkaBootstrapAddress);
         return kafkaStreams;
     }
 
@@ -61,7 +61,7 @@ public class KafkaStreamsStarter {
         } catch (Exception e) {
             throw new RuntimeException("Kafka connection error " + kafkaBootstrapAddress, e);
         }
-        logger.debug("Connected to Kafka " + kafkaBootstrapAddress);
+        logger.trace("Connected to Kafka {}", kafkaBootstrapAddress);
     }
 
     private static void startStreams(KafkaStreams kafkaStreams) {
@@ -69,7 +69,7 @@ public class KafkaStreamsStarter {
 
         // wait for consistent state
         kafkaStreams.setStateListener((newState, oldState) -> {
-            logger.trace(oldState + "->" + newState);
+            logger.trace("{} -> {}", oldState, newState);
 
             if (oldState == KafkaStreams.State.REBALANCING && newState == KafkaStreams.State.RUNNING) {
                 streamsStartedLatch.countDown();
@@ -87,7 +87,7 @@ public class KafkaStreamsStarter {
         KafkaStreams.State state = kafkaStreams.state();
 
         if (state != KafkaStreams.State.RUNNING) {
-            logger.error("Unable to start Kafka Streams, current state: " + state);
+            logger.error("Unable to start Kafka Streams, current state: {}", state);
             System.exit(1);
         }
     }

@@ -1,0 +1,7 @@
+server:
+  port: 8082
+
+kafka:
+  bootstrapAddress: kafka:9092
+
+apiVersion: 1

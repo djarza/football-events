@@ -44,7 +44,7 @@ public class MatchScore {
             awayGoals++;
         } else {
             throw new IllegalArgumentException("Goal is not assignet to match, home club: " + homeClubId
-                + ", away club: " + awayClubId + ", goal id: " + goal.getGoalId());
+                + ", away club: " + awayClubId + ", goal id: " + goal.getAggId());
         }
     }
 

@@ -15,10 +15,15 @@ public class GoalScored extends Event {
 
     public GoalScored(String goalId, String matchId, int minute, String scorerId, String scoredFor) {
         this.goalId = Objects.requireNonNull(goalId);
-        this.matchId = matchId;
+        this.matchId = Objects.requireNonNull(matchId);
         this.minute = minute;
         this.scorerId = scorerId;
         this.scoredFor = scoredFor;
+    }
+
+    @Override
+    public String getAggId() {
+        return matchId;
     }
 
     public String getGoalId() {
