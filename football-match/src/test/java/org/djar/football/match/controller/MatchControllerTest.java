@@ -2,11 +2,9 @@ package org.djar.football.match.controller;
 
 import java.time.LocalDateTime;
 import org.djar.football.event.CardReceived;
-import org.djar.football.event.Event;
 import org.djar.football.event.GoalScored;
 import org.djar.football.event.MatchScheduled;
 import org.djar.football.event.MatchStarted;
-import org.djar.football.match.domain.Card;
 import org.djar.football.match.domain.Match;
 import org.djar.football.match.domain.Player;
 import org.djar.football.match.domain.Team;
@@ -92,7 +90,7 @@ public class MatchControllerTest {
 
     @Test
     public void newCardRequest() {
-        controller.receiveCard("match1", new NewCardRequest("card1", "match1", 33, "player1", "RED")).block();
+        controller.receiveCard("match1", new CardRequest("card1", "match1", 33, "player1", "RED")).block();
 
         ArgumentCaptor<CardReceived> captor = ArgumentCaptor.forClass(CardReceived.class);
         verify(publisher).fire(captor.capture());

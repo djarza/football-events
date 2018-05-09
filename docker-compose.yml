@@ -15,7 +15,7 @@ services:
             KAFKA_ADVERTISED_HOST_NAME: kafka
             KAFKA_ADVERTISED_PORT: 9092
             KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka:9092"
-            KAFKA_CREATE_TOPICS: "fb.event.match_scheduled:1:1,fb.event.match_started:1:1,fb.event.goal_scored:1:1,fb.event.match_finished:1:1,fb.event.player_started_career:1:1"
+            KAFKA_CREATE_TOPICS: "fb.event.match_scheduled:1:1,fb.event.match_started:1:1,fb.event.goal_scored:1:1,fb.event.card_received:1:1,fb.event.match_finished:1:1,fb.event.player_started_career:1:1"
             KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
             KAFKA_BROKER_ID: 999
         image: wurstmeister/kafka:1.1.0

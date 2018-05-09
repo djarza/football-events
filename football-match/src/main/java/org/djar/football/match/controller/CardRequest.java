@@ -1,6 +1,6 @@
 package org.djar.football.match.controller;
 
-public class NewCardRequest {
+public class CardRequest {
 
     private String id;
     private String matchId;
@@ -8,10 +8,10 @@ public class NewCardRequest {
     private String receiverId;
     private String type;
 
-    public NewCardRequest() {
+    public CardRequest() {
     }
 
-    public NewCardRequest(String id, String matchId, int minute, String receiverId, String type) {
+    public CardRequest(String id, String matchId, int minute, String receiverId, String type) {
         this.id = id;
         this.matchId = matchId;
         this.minute = minute;

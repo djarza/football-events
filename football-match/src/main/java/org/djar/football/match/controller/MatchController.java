@@ -88,7 +88,7 @@ public class MatchController {
 
     @PostMapping("/matches/{matchId}/cards")
     @ResponseStatus(HttpStatus.CREATED)
-    public Mono<Void> receiveCard(@PathVariable String matchId, @RequestBody NewCardRequest cardReq) {
+    public Mono<Void> receiveCard(@PathVariable String matchId, @RequestBody CardRequest cardReq) {
         return Mono.<Event>create(sink -> {
             Match match = getMatch(matchId);
             Player receiver = repository.find(cardReq.getReceiverId(), SnapshotBuilder.PLAYER_STORE);
