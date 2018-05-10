@@ -80,6 +80,22 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
+			<plugin>
+				<groupId>com.spotify</groupId>
+				<artifactId>dockerfile-maven-plugin</artifactId>
+                <version>${dockerfile.maven.version}</version>
+				<executions>
+					<execution>
+						<id>default</id>
+						<goals>
+							<goal>build</goal>
+						</goals>
+					</execution>
+				</executions>
+                <configuration>
+                    <repository>football-match</repository>
+                </configuration>
+			</plugin>
 		</plugins>
 	</build>
 </project>

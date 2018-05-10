@@ -27,6 +27,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>1.8</java.version>
+        <dockerfile.maven.version>1.4.0</dockerfile.maven.version>
     </properties>
 
     <build>
