@@ -1,1 +1,6 @@
+SET 'auto.offset.reset' = 'earliest';
 CREATE TABLE players (playerid BIGINT, name VARCHAR) WITH (kafka_topic='fb.event.player_started_career', value_format='JSON', key='playerId');
+CREATE STREAM goals (scorerid BIGINT, matchid BIGINT) WITH (kafka_topic='fb.event.goal_scored', value_format='JSON');
+CREATE STREAM cards (receiverid BIGINT, type VARCHAR) WITH (kafka_topic='fb.event.card_received', value_format='JSON');
+CREATE STREAM player_goals AS SELECT p.playerid, p.name FROM goals g LEFT JOIN players p ON p.playerid = g.scorerid;
+CREATE TABLE player_ranking AS SELECT name, count(playerid) from player_goals group by name;
