@@ -38,7 +38,7 @@ public class KafkaStreamsStarter {
         waitForKafka(kafkaBootstrapAddress);
         startStreams(kafkaStreams);
 
-        logger.debug("Kafka Streams started: {}", kafkaBootstrapAddress);
+        logger.debug("Started Kafka Streams, Kafka bootstrap: {}", kafkaBootstrapAddress);
         return kafkaStreams;
     }
 
@@ -53,7 +53,7 @@ public class KafkaStreamsStarter {
                 ListTopicsResult topics = client.listTopics();
                 Set<String> names = topics.names().get();
 
-                if (!names.isEmpty()) {
+                if (names.stream().anyMatch(name -> name.startsWith("fb."))) {
                     break;
                 }
                 Thread.sleep(CONNECT_RETRY_DELAY);

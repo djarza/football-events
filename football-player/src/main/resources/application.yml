@@ -1,5 +1,5 @@
 server:
-  port: 8082
+  port: 18082
 
 kafka:
   bootstrapAddress: kafka:9092
