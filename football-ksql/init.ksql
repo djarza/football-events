@@ -1,1 +1,0 @@
-CREATE TABLE players (playerid BIGINT, name VARCHAR) WITH (kafka_topic='fb.event.player_started_career', value_format='JSON', key='playerId');
