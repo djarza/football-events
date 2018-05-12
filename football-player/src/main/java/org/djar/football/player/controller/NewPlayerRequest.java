@@ -5,6 +5,14 @@ public class NewPlayerRequest {
     private String id;
     private String name;
 
+    private NewPlayerRequest() {
+    }
+
+    public NewPlayerRequest(String id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
     public String getId() {
         return id;
     }

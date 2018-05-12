@@ -1,11 +1,11 @@
 package org.djar.football.stream;
 
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.djar.football.event.Event;
 import org.djar.football.event.EventMetadata;
+import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
 public class EventPublisher {

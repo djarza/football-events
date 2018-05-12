@@ -53,6 +53,7 @@ public class KafkaStreamsStarter {
                 ListTopicsResult topics = client.listTopics();
                 Set<String> names = topics.names().get();
 
+                // wait until football topics are created
                 if (names.stream().anyMatch(name -> name.startsWith("fb."))) {
                     break;
                 }
@@ -69,7 +70,7 @@ public class KafkaStreamsStarter {
 
         // wait for consistent state
         kafkaStreams.setStateListener((newState, oldState) -> {
-            logger.trace("{} -> {}", oldState, newState);
+            logger.trace("Kafka Streams state has been changed from {} to {}", oldState, newState);
 
             if (oldState == KafkaStreams.State.REBALANCING && newState == KafkaStreams.State.RUNNING) {
                 streamsStartedLatch.countDown();
@@ -87,7 +88,7 @@ public class KafkaStreamsStarter {
         KafkaStreams.State state = kafkaStreams.state();
 
         if (state != KafkaStreams.State.RUNNING) {
-            logger.error("Unable to start Kafka Streams, current state: {}", state);
+            logger.error("Unable to start Kafka Streams, the current state is {}", state);
             System.exit(1);
         }
     }

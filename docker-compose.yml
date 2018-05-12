@@ -3,20 +3,20 @@ services:
   zookeeper:
     hostname: zookeeper
     ports:
-      - "2181:2181"
+      - 2181:2181
     image: wurstmeister/zookeeper
     container_name: zookeeper
 
   kafka:
     hostname: kafka
     ports:
-      - "9092:9092"
+      - 9092:9092
     depends_on:
       - zookeeper
     environment:
       KAFKA_ADVERTISED_HOST_NAME: kafka
       KAFKA_ADVERTISED_PORT: 9092
-      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka:9092"
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_CREATE_TOPICS: >
         fb.event.match_scheduled:1:1,fb.event.match_started:1:1,fb.event.goal_scored:1:1,
         fb.event.card_received:1:1,fb.event.match_finished:1:1,fb.event.player_started_career:1:1
@@ -28,24 +28,47 @@ services:
       - zookeeper
 
   schema-registry:
-    image: "confluentinc/cp-schema-registry:4.1.0"
+    image: confluentinc/cp-schema-registry:4.1.0
     hostname: schema-registry
     container_name: schema-registry
     depends_on:
       - zookeeper
       - kafka
     ports:
-      - '8081:8081'
+      - 8081:8081
     environment:
       SCHEMA_REGISTRY_HOST_NAME: schema-registry
       SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: zookeeper:2181
     extra_hosts:
-      - "moby:127.0.0.1"
+      - moby:127.0.0.1
+
+  postgres:
+    image: debezium/example-postgres:latest
+    container_name: postgres
+    ports:
+     - 5432:5432
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+
+  connect:
+    image: debezium/connect:latest
+    container_name: connect
+    ports:
+     - 8083:8083
+    links:
+     - kafka
+     - postgres
+    environment:
+      BOOTSTRAP_SERVERS: kafka:9092
+      GROUP_ID: 1
+      CONFIG_STORAGE_TOPIC: fb.connect.configs
+      OFFSET_STORAGE_TOPIC: fb.connect.offsets
 
   football-match:
     container_name: football-match
     ports:
-      - "18081:18081"
+      - 18081:18081
     depends_on:
       - kafka
     build: football-match/
@@ -54,7 +77,7 @@ services:
   football-player:
     container_name: football-player
     ports:
-      - "18082:18082"
+      - 18082:18082
     depends_on:
       - kafka
     build: football-player/
@@ -63,7 +86,7 @@ services:
   football-query:
     container_name: football-query
     ports:
-      - "18083:18083"
+      - 18083:18083
     depends_on:
       - kafka
     build: football-query/

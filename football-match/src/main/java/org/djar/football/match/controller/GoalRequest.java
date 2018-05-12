@@ -6,7 +6,7 @@ public class GoalRequest {
     private int minute;
     private String scorerId;
 
-    public GoalRequest() {
+    private GoalRequest() {
     }
 
     public GoalRequest(String id, int minute, String scorerId) {

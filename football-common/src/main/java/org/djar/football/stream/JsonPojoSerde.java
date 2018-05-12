@@ -32,10 +32,6 @@ public class JsonPojoSerde<T> implements Serde<T>, Serializer<T>, Deserializer<T
         mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     }
 
-    public static Serializer newSerializer() {
-        return new JsonPojoSerde(null);
-    }
-
     @Override
     public void configure(Map<String, ?> configs, boolean isKey) {
     }

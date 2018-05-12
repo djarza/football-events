@@ -11,7 +11,7 @@ public class NewMatchRequest {
     private String homeClubId;
     private String awayClubId;
 
-    public NewMatchRequest() {
+    private NewMatchRequest() {
     }
 
     public NewMatchRequest(String id, String seasonId, LocalDateTime date, String homeClubId, String awayClubId) {

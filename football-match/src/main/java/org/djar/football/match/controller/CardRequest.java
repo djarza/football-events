@@ -8,7 +8,7 @@ public class CardRequest {
     private String receiverId;
     private String type;
 
-    public CardRequest() {
+    private CardRequest() {
     }
 
     public CardRequest(String id, String matchId, int minute, String receiverId, String type) {
