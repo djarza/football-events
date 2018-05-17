@@ -3,12 +3,16 @@ package org.djar.football.stream;
 import java.util.UUID;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.djar.football.Events;
 import org.djar.football.event.Event;
 import org.djar.football.event.EventMetadata;
-import org.springframework.stereotype.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Mono;
 
 public class EventPublisher {
+
+    private static final Logger logger = LoggerFactory.getLogger(EventPublisher.class);
 
     private final KafkaProducer<String, Event> producer;
     private final String processId;
@@ -22,11 +26,11 @@ public class EventPublisher {
 
     public Mono<Void> fire(Event event) {
         return Mono.create(sink -> {
-            long timestamp = System.currentTimeMillis();
-            String eventId = generateId();
-            event.setMetadata(new EventMetadata(eventId, processId, timestamp, apiVersion));
-            String topic = Event.eventName(event.getClass());
-            ProducerRecord<String, Event> record = new ProducerRecord<>(topic, 0, timestamp, event.getAggId(), event);
+            fillOut(event);
+            String topic = Events.topicName(event.getClass());
+            ProducerRecord<String, Event> record = new ProducerRecord<>(topic, 0, event.getMetadata().getTimestamp(),
+                    event.getAggId(), event);
+            logger.debug("New {} event created: {}", event.getClass().getSimpleName(), event.getAggId());
 
             producer.send(record, (metadata, exception) -> {
                 if (exception == null) {
@@ -36,6 +40,11 @@ public class EventPublisher {
                 }
             });
         });
+    }
+
+    public void fillOut(Event event) {
+        long timestamp = System.currentTimeMillis();
+        event.setMetadata(new EventMetadata(generateId(), processId, timestamp, apiVersion));
     }
 
     private String generateId() {

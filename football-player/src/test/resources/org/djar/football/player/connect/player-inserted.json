@@ -1,0 +1,117 @@
+{
+  "schema": {
+    "type": "struct",
+    "fields": [
+      {
+        "type": "struct",
+        "fields": [
+          {
+            "type": "int64",
+            "optional": false,
+            "field": "id"
+          },
+          {
+            "type": "string",
+            "optional": false,
+            "field": "name"
+          }
+        ],
+        "optional": true,
+        "name": "fb-connect.public.players.Value",
+        "field": "before"
+      },
+      {
+        "type": "struct",
+        "fields": [
+          {
+            "type": "int64",
+            "optional": false,
+            "field": "id"
+          },
+          {
+            "type": "string",
+            "optional": false,
+            "field": "name"
+          }
+        ],
+        "optional": true,
+        "name": "fb-connect.public.players.Value",
+        "field": "after"
+      },
+      {
+        "type": "struct",
+        "fields": [
+          {
+            "type": "string",
+            "optional": true,
+            "field": "version"
+          },
+          {
+            "type": "string",
+            "optional": false,
+            "field": "name"
+          },
+          {
+            "type": "int64",
+            "optional": true,
+            "field": "ts_usec"
+          },
+          {
+            "type": "int32",
+            "optional": true,
+            "field": "txId"
+          },
+          {
+            "type": "int64",
+            "optional": true,
+            "field": "lsn"
+          },
+          {
+            "type": "boolean",
+            "optional": true,
+            "default": false,
+            "field": "snapshot"
+          },
+          {
+            "type": "boolean",
+            "optional": true,
+            "field": "last_snapshot_record"
+          }
+        ],
+        "optional": false,
+        "name": "io.debezium.connector.postgresql.Source",
+        "field": "source"
+      },
+      {
+        "type": "string",
+        "optional": false,
+        "field": "op"
+      },
+      {
+        "type": "int64",
+        "optional": true,
+        "field": "ts_ms"
+      }
+    ],
+    "optional": false,
+    "name": "fb-connect.public.players.Envelope"
+  },
+  "payload": {
+    "before": null,
+    "after": {
+      "id": 1,
+      "name": "Player One"
+    },
+    "source": {
+      "version": "0.7.5",
+      "name": "fb-connect",
+      "ts_usec": 1.5263806627558e+15,
+      "txId": 578,
+      "lsn": 23980070,
+      "snapshot": false,
+      "last_snapshot_record": null
+    },
+    "op": "c",
+    "ts_ms": 1526380662865
+  }
+}

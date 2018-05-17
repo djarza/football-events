@@ -49,6 +49,6 @@ public class MatchScheduled extends Event {
 
     @Override
     public String toString() {
-        return matchId + "," + seasonId + "," + homeClubId + "," + awayClubId;
+        return matchId + "," + seasonId + "," + homeClubId + " vs " + awayClubId;
     }
 }

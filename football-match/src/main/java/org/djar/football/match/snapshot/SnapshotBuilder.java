@@ -21,12 +21,12 @@ import org.slf4j.LoggerFactory;
 
 public class SnapshotBuilder {
 
+    private static final Logger logger = LoggerFactory.getLogger(SnapshotBuilder.class);
+
     public static final String MATCH_STORE = "match_store";
     public static final String GOAL_STORE = "goal_store";
     public static final String CARD_STORE = "card_store";
     public static final String PLAYER_STORE = "player_store";
-
-    private static final Logger logger = LoggerFactory.getLogger(SnapshotBuilder.class);
 
     public void init(Topology topology) {
         addProcessor(topology, MatchScheduled.class, (eventId, event, store) -> {

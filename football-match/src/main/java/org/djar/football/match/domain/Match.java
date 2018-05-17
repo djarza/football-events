@@ -72,7 +72,7 @@ public class Match {
 
     public void validateTransistionTo(State newState) {
         if (!state.transitionAllowed(newState)) {
-            throw new RuntimeException("Cannot change match state from " + state + " to " + newState
+            throw new IllegalStateException("Cannot change match state from " + state + " to " + newState
                 + ", match id: " + id);
         }
     }

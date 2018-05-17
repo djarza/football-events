@@ -14,8 +14,8 @@ public class GoalScored extends Event {
     }
 
     public GoalScored(String goalId, String matchId, int minute, String scorerId, String scoredFor) {
-        this.goalId = Objects.requireNonNull(goalId);
-        this.matchId = Objects.requireNonNull(matchId);
+        this.goalId = Objects.requireNonNull(goalId, "Null goal id");
+        this.matchId = Objects.requireNonNull(matchId, "Null match id");
         this.minute = minute;
         this.scorerId = scorerId;
         this.scoredFor = scoredFor;
@@ -48,6 +48,6 @@ public class GoalScored extends Event {
 
     @Override
     public String toString() {
-        return matchId + "," + minute + "," + scorerId + "," + scoredFor;
+        return matchId + "," + minute + "m," + scorerId + "," + scoredFor;
     }
 }

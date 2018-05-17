@@ -44,6 +44,6 @@ public class MatchStarted extends Event {
 
     @Override
     public String toString() {
-        return matchId + "," + homeClubId + "," + awayClubId;
+        return matchId + "," + homeClubId + " vs" + awayClubId;
     }
 }

@@ -8,11 +8,13 @@ import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
 import org.djar.football.event.Event;
+import org.djar.football.match.domain.Match;
+import org.djar.football.match.domain.Player;
 import org.djar.football.match.snapshot.SnapshotBuilder;
+import org.djar.football.repo.ReadOnlyKeyValueStoreRepository;
 import org.djar.football.stream.EventPublisher;
 import org.djar.football.stream.JsonPojoSerde;
 import org.djar.football.stream.KafkaStreamsStarter;
-import org.djar.football.stream.ReadOnlyKeyValueStoreRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,7 +41,7 @@ public class MatchApplication {
         SnapshotBuilder snapshotBuilder = new SnapshotBuilder();
         Topology topology = streamsBuilder.build();
         snapshotBuilder.init(topology);
-        return KafkaStreamsStarter.start(kafkaBootstrapAddress, topology, getClass().getSimpleName());
+        return KafkaStreamsStarter.start(kafkaBootstrapAddress, topology, getClass().getName());
     }
 
     @Bean
@@ -48,13 +50,19 @@ public class MatchApplication {
         producerProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBootstrapAddress);
         producerProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         producerProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonPojoSerde.class.getName());
+        producerProps.put(ProducerConfig.CLIENT_ID_CONFIG, getClass().getName());
         KafkaProducer<String, Event> kafkaProducer = new KafkaProducer<>(producerProps);
         return new EventPublisher(kafkaProducer, PROCESS_ID, apiVersion);
     }
 
     @Bean
-    public ReadOnlyKeyValueStoreRepository repository() {
-        return new ReadOnlyKeyValueStoreRepository(kafkaStreams());
+    public ReadOnlyKeyValueStoreRepository<Match> matchRepository() {
+        return new ReadOnlyKeyValueStoreRepository<>(kafkaStreams(), SnapshotBuilder.MATCH_STORE);
+    }
+
+    @Bean
+    public ReadOnlyKeyValueStoreRepository<Player> playerRepository() {
+        return new ReadOnlyKeyValueStoreRepository<>(kafkaStreams(), SnapshotBuilder.PLAYER_STORE);
     }
 
     private static String processId() {

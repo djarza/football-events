@@ -1,6 +1,13 @@
 package org.djar.football.match.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import java.time.LocalDateTime;
+import java.util.Optional;
 import org.djar.football.event.CardReceived;
 import org.djar.football.event.GoalScored;
 import org.djar.football.event.MatchScheduled;
@@ -8,27 +15,18 @@ import org.djar.football.event.MatchStarted;
 import org.djar.football.match.domain.Match;
 import org.djar.football.match.domain.Player;
 import org.djar.football.match.domain.Team;
-import org.djar.football.match.snapshot.SnapshotBuilder;
+import org.djar.football.repo.ReadOnlyKeyValueStoreRepository;
 import org.djar.football.stream.EventPublisher;
-import org.djar.football.stream.ReadOnlyKeyValueStoreRepository;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import reactor.core.publisher.Mono;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 public class MatchControllerTest {
 
     private MatchController controller;
-    private ReadOnlyKeyValueStoreRepository repository;
+    private ReadOnlyKeyValueStoreRepository<Match> matchRepository;
+    private ReadOnlyKeyValueStoreRepository<Player> playerRepository;
     private EventPublisher publisher;
 
     @Before
@@ -36,14 +34,16 @@ public class MatchControllerTest {
         publisher = mock(EventPublisher.class);
         when(publisher.fire(any())).thenReturn(Mono.empty());
 
-        repository = mock(ReadOnlyKeyValueStoreRepository.class);
+        matchRepository = mock(ReadOnlyKeyValueStoreRepository.class);
+        playerRepository = mock(ReadOnlyKeyValueStoreRepository.class);
         Match match = new Match("match1", LocalDateTime.now(), new Team("t1"), new Team("t2"));
         match.setState(Match.State.STARTED);
-        when(repository.find("match1", SnapshotBuilder.MATCH_STORE)).thenReturn(match);
-        when(repository.find("player1", SnapshotBuilder.PLAYER_STORE)).thenReturn(
-            new Player("player1", "Player Name"));
+        when(matchRepository.find("match1")).thenReturn(Optional.of(match));
+        when(matchRepository.find("FAKE_MATCH")).thenReturn(Optional.empty());
+        when(playerRepository.find("player1")).thenReturn(
+            Optional.of(new Player("player1", "Player Name")));
 
-        controller = new MatchController(publisher, repository);
+        controller = new MatchController(publisher, matchRepository, playerRepository);
     }
 
     @Test
@@ -57,8 +57,8 @@ public class MatchControllerTest {
 
     @Test
     public void setMatchState() {
-        when(repository.find("match0", SnapshotBuilder.MATCH_STORE)).thenReturn(
-                new Match("match0", LocalDateTime.now(), new Team("t1"), new Team("t2")));
+        when(matchRepository.find("match0")).thenReturn(
+                Optional.of(new Match("match0", LocalDateTime.now(), new Team("t1"), new Team("t2"))));
         controller.setMatchState("match0", Match.State.STARTED).block();
 
         ArgumentCaptor<MatchStarted> captor = ArgumentCaptor.forClass(MatchStarted.class);
@@ -86,6 +86,11 @@ public class MatchControllerTest {
         GoalScored event = captor.getValue();
         assertThat(event.getMatchId()).isEqualTo("match1");
         assertThat(event.getScoredFor()).isEqualTo("t2");
+    }
+
+    @Test(expected = InvalidRequestExeption.class)
+    public void scoreGoalInNonExistentMatch() {
+        controller.scoreGoalForHomeTeam("FAKE_MATCH", new GoalRequest("goal1", 22, "player1")).block();
     }
 
     @Test

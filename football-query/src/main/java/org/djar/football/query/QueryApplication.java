@@ -22,7 +22,7 @@ public class QueryApplication {
         MatchStatisticsBuilder statisticsBuilder = new MatchStatisticsBuilder();
         statisticsBuilder.build(streamsBuilder);
         Topology topology = streamsBuilder.build();
-        return KafkaStreamsStarter.start(kafkaBootstrapAddress, topology, QueryApplication.class.getSimpleName());
+        return KafkaStreamsStarter.start(kafkaBootstrapAddress, topology, QueryApplication.class.getName());
     }
 
     public static void main(String[] args) {

@@ -11,8 +11,8 @@ import org.djar.football.event.MatchStarted;
 import org.djar.football.match.domain.Match;
 import org.djar.football.match.domain.Player;
 import org.djar.football.match.snapshot.SnapshotBuilder;
+import org.djar.football.repo.ReadOnlyKeyValueStoreRepository;
 import org.djar.football.stream.EventPublisher;
-import org.djar.football.stream.ReadOnlyKeyValueStoreRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -29,11 +29,14 @@ import reactor.core.publisher.Mono;
 public class MatchController {
 
     private final EventPublisher publisher;
-    private final ReadOnlyKeyValueStoreRepository repository;
+    private final ReadOnlyKeyValueStoreRepository<Match> matchRepository;
+    private final ReadOnlyKeyValueStoreRepository<Player> playerRepository;
 
-    public MatchController(EventPublisher publisher, ReadOnlyKeyValueStoreRepository repository) {
+    public MatchController(EventPublisher publisher, ReadOnlyKeyValueStoreRepository<Match> matchRepository,
+            ReadOnlyKeyValueStoreRepository<Player> playerRepository) {
         this.publisher = publisher;
-        this.repository = repository;
+        this.matchRepository = matchRepository;
+        this.playerRepository = playerRepository;
     }
 
     @PostMapping("/matches")
@@ -47,7 +50,8 @@ public class MatchController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public Mono<Void> setMatchState(@PathVariable String matchId, @RequestBody Match.State newState) {
         return Mono.<Event>create(sink -> {
-            Match match = repository.find(matchId, SnapshotBuilder.MATCH_STORE);
+            Match match = matchRepository.find(matchId)
+                    .orElseThrow(() -> new NotFoundException("Match not found", matchId));
             match.validateTransistionTo(newState);
             Event event;
 
@@ -59,50 +63,54 @@ public class MatchController {
                 throw new UnsupportedOperationException("State " + newState + " not implemented yet");
             }
             sink.success(event);
-        }).flatMap(event -> publisher.fire(event));
+        }).flatMap(publisher::fire);
     }
 
     @PostMapping("/matches/{matchId}/homeGoals")
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<Void> scoreGoalForHomeTeam(@PathVariable String matchId, @RequestBody GoalRequest goalReq) {
         return Mono.<Event>create(sink -> {
-            Match match = getMatch(matchId);
-            Player scorer = repository.find(goalReq.getScorerId(), SnapshotBuilder.PLAYER_STORE);
+            Match match = findRelatedMatch(matchId);
+            Player scorer = playerRepository.find(goalReq.getScorerId())
+                    .orElseThrow(() -> new NotFoundException("Player not found", goalReq.getScorerId()));
             GoalScored event = new GoalScored(goalReq.getId(), matchId, goalReq.getMinute(), scorer.getId(),
                     match.getHomeTeam().getClubId());
             sink.success(event);
-        }).flatMap(event -> publisher.fire(event));
+        }).flatMap(publisher::fire);
     }
 
     @PostMapping("/matches/{matchId}/awayGoals")
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<Void> scoreGoalForAwayTeam(@PathVariable String matchId, @RequestBody GoalRequest goalReq) {
         return Mono.<Event>create(sink -> {
-            Match match = getMatch(matchId);
-            Player scorer = repository.find(goalReq.getScorerId(), SnapshotBuilder.PLAYER_STORE);
+            Match match = findRelatedMatch(matchId);
+            Player scorer = playerRepository.find(goalReq.getScorerId())
+                    .orElseThrow(() -> new NotFoundException("Player not found", goalReq.getScorerId()));
             GoalScored event = new GoalScored(goalReq.getId(), matchId, goalReq.getMinute(), scorer.getId(),
                     match.getAwayTeam().getClubId());
             sink.success(event);
-        }).flatMap(event -> publisher.fire(event));
+        }).flatMap(publisher::fire);
     }
 
     @PostMapping("/matches/{matchId}/cards")
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<Void> receiveCard(@PathVariable String matchId, @RequestBody CardRequest cardReq) {
         return Mono.<Event>create(sink -> {
-            Match match = getMatch(matchId);
-            Player receiver = repository.find(cardReq.getReceiverId(), SnapshotBuilder.PLAYER_STORE);
+            Match match = findRelatedMatch(matchId);
+            Player receiver = playerRepository.find(cardReq.getReceiverId())
+                    .orElseThrow(() -> new NotFoundException("Player not found", cardReq.getReceiverId()));
             CardReceived event = new CardReceived(cardReq.getId(), matchId, cardReq.getMinute(), receiver.getId(),
                     CardReceived.Type.valueOf(cardReq.getType()));
             sink.success(event);
-        }).flatMap(event -> publisher.fire(event));
+        }).flatMap(publisher::fire);
     }
 
-    private Match getMatch(String matchId) {
-        Match match = repository.find(matchId, SnapshotBuilder.MATCH_STORE);
+    private Match findRelatedMatch(String matchId) {
+        Match match = matchRepository.find(matchId)
+                .orElseThrow(() -> new InvalidRequestExeption("Match not found " + matchId));
 
         if (match.getState() != State.STARTED) {
-            throw new IllegalStateException("Match state must be STARTED instead of " + match.getState());
+            throw new InvalidRequestExeption("Match state must be STARTED instead of " + match.getState());
         }
         return match;
     }

@@ -30,6 +30,6 @@ public class PlayerStartedCareer extends Event {
 
     @Override
     public String toString() {
-        return name;
+        return playerId + "," + name;
     }
 }

@@ -8,6 +8,7 @@ import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
 import org.djar.football.event.Event;
+import org.djar.football.player.connect.PlayerEventProducer;
 import org.djar.football.player.snapshot.SnapshotBuilder;
 import org.djar.football.stream.EventPublisher;
 import org.djar.football.stream.JsonPojoSerde;
@@ -35,10 +36,10 @@ public class PlayerApplication {
     @Bean
     public KafkaStreams kafkaStreams() {
         StreamsBuilder streamsBuilder = new StreamsBuilder();
-        SnapshotBuilder snapshotBuilder = new SnapshotBuilder();
         Topology topology = streamsBuilder.build();
-        snapshotBuilder.init(topology);
-        return KafkaStreamsStarter.start(kafkaBootstrapAddress, topology, getClass().getSimpleName());
+        new SnapshotBuilder().init(topology);
+        new PlayerEventProducer(eventPublisher()).build(streamsBuilder);
+        return KafkaStreamsStarter.start(kafkaBootstrapAddress, topology, getClass().getName());
     }
 
     @Bean
@@ -47,6 +48,7 @@ public class PlayerApplication {
         producerProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBootstrapAddress);
         producerProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         producerProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonPojoSerde.class.getName());
+        producerProps.put(ProducerConfig.CLIENT_ID_CONFIG, getClass().getName());
         KafkaProducer<String, Event> kafkaProducer = new KafkaProducer<>(producerProps);
         return new EventPublisher(kafkaProducer, getClass().getSimpleName(), apiVersion);
     }

@@ -52,6 +52,6 @@ public class CardReceived extends Event {
 
     @Override
     public String toString() {
-        return matchId + "," + minute + "," + receiverId + "," + type;
+        return matchId + "," + minute + "m," + receiverId + "," + type;
     }
 }

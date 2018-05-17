@@ -36,6 +36,6 @@ public class MatchFinished extends Event {
 
     @Override
     public String toString() {
-        return matchId;
+        return matchId + "," + homeClubId + " vs " + awayClubId;
     }
 }

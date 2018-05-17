@@ -11,8 +11,13 @@ import java.net.URL;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Objects;
 import java.util.Properties;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.serialization.Deserializer;
+import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.Topology;
@@ -22,6 +27,7 @@ import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
 import org.apache.kafka.streams.test.ConsumerRecordFactory;
+import org.djar.football.Events;
 import org.djar.football.event.Event;
 import org.djar.football.stream.JsonPojoSerde;
 import org.springframework.util.FileSystemUtils;
@@ -60,14 +66,26 @@ public class StreamsTester {
 
     public void sendEvents(Event[] events) {
         ConsumerRecordFactory<String, Event> factory = new ConsumerRecordFactory<>(
-                new StringSerializer(), new JsonPojoSerde());
+                new StringSerializer(), new JsonPojoSerde<Event>());
         int eventSeq = 1;
 
         for (Event event : events) {
-            String topic = Event.eventName(event.getClass());
+            String topic = Events.topicName(event.getClass());
             ConsumerRecord<byte[], byte[]> record = factory.create(topic, event.getAggId(), event);
             testDriver.pipeInput(record);
         }
+    }
+
+    public <T> void sendStringMessage(T key, String value, String topic) {
+        ConsumerRecordFactory<T, String> factory = new ConsumerRecordFactory<>(
+                (Serializer<T>)Serdes.serdeFrom(key.getClass()).serializer(), new StringSerializer());
+        ConsumerRecord<byte[], byte[]> record = factory.create(topic, key, value);
+        testDriver.pipeInput(record);
+    }
+
+    public <K, V> ProducerRecord<K, V> read(String topic, Deserializer<K> keyDeserializer,
+            Deserializer<V> valueDeserializer) {
+        return testDriver.readOutput(topic, keyDeserializer, valueDeserializer);
     }
 
     public <K, V> KeyValueStore<K, V> getStore(String name) {
@@ -80,9 +98,7 @@ public class StreamsTester {
                 testDriver.close();
             } catch (StreamsException e) {
                 // temporary workaround for https://github.com/apache/kafka/pull/4713
-                if (e.getCause() instanceof DirectoryNotEmptyException) {
-                    // ignore;
-                } else {
+                if (!(e.getCause() instanceof DirectoryNotEmptyException)) {
                     throw e;
                 }
             }
@@ -102,9 +118,8 @@ public class StreamsTester {
     }
 
     private <T> T[] load(URL resource, Class<T> type) {
-        if (resource == null) {
-            throw new RuntimeException("File not found: " + resource);
-        }
+        Objects.requireNonNull(resource, "Null resource");
+
         ObjectMapper mapper = new ObjectMapper();
         // noinspection deprecation
         mapper.registerModule(new JSR310Module());
