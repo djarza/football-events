@@ -59,7 +59,7 @@ public class BasicIntegrationTest {
 
     private static final Logger logger = LoggerFactory.getLogger(BasicIntegrationTest.class);
 
-    private static final int EVENT_TIMEOUT = 20000;
+    private static final int EVENT_TIMEOUT = 30000;
 
     private static DockerCompose dockerCompose;
     private static RestTemplate rest;
@@ -221,10 +221,10 @@ public class BasicIntegrationTest {
         return mapper.readerFor(Map[].class).readValue(response.getBody());
     }
 
-    private static <T extends Event> void waitForEvents(Class<T> type, String... eventId) {
+    private static <T extends Event> void waitForEvents(Class<T> type, String... eventIds) {
         long timeout = System.currentTimeMillis() + EVENT_TIMEOUT;
 
-        Collection<String> search = new ArrayList<>(Arrays.asList(eventId));
+        Collection<String> search = new ArrayList<>(Arrays.asList(eventIds));
         Collection<String> found = new ArrayList<>();
         Collection<String> redundant = new ArrayList<>();
 
@@ -243,6 +243,7 @@ public class BasicIntegrationTest {
                 }
             }
             if (search.isEmpty()) {
+                logger.debug("The expected events have been received: " + Arrays.toString(eventIds));
                 break;
             }
             poolTimeout = timeout - System.currentTimeMillis();
@@ -253,7 +254,7 @@ public class BasicIntegrationTest {
             logger.warn("Some redundant events have been found in topic " + topic + ": " + search);
         }
         if (!search.isEmpty()) {
-            Assert.fail("Expected events in topic " + topic + ": " + search + ", found: " + found);
+            Assert.fail("The expected events in topic " + topic + " should be: " + search + ", but found: " + found);
         }
     }
 
