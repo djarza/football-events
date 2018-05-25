@@ -32,21 +32,6 @@ services:
     links:
       - zookeeper
 
-  schema-registry:
-    image: confluentinc/cp-schema-registry:4.1.0
-    hostname: schema-registry
-    container_name: schema-registry
-    depends_on:
-      - zookeeper
-      - kafka
-    ports:
-      - 8081:8081
-    environment:
-      SCHEMA_REGISTRY_HOST_NAME: schema-registry
-      SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: zookeeper:2181
-    extra_hosts:
-      - moby:127.0.0.1
-
   postgres:
     image: debezium/example-postgres:latest
     container_name: postgres
