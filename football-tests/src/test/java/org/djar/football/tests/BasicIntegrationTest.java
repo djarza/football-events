@@ -1,5 +1,6 @@
 package org.djar.football.tests;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.HttpMethod.PATCH;
 import static org.springframework.http.HttpMethod.POST;
@@ -18,7 +19,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.TimeUnit;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -63,7 +63,7 @@ public class BasicIntegrationTest {
 
     private static DockerCompose dockerCompose;
     private static RestTemplate rest;
-    private static JdbcTemplate jdbc;
+    private static JdbcTemplate postgres;
     private static KafkaConsumer<String, String> eventConsumer;
 
     @Rule
@@ -72,11 +72,10 @@ public class BasicIntegrationTest {
     @BeforeClass
     public static void setup()  {
         dockerCompose = new DockerCompose()
-            .addHealthCheck("http://localhost:18081/actuator/health", "{\"status\":\"UP\"}")
-            .addHealthCheck("http://localhost:18082/actuator/health", "{\"status\":\"UP\"}")
-            .addHealthCheck("http://localhost:18083/actuator/health", "{\"status\":\"UP\"}")
-            .addHealthCheck("http://localhost:8083/connectors", "[]")
-            .healthCheckTimeout(180, TimeUnit.SECONDS);
+            .addHealthCheck("http://football-match:18081/actuator/health", "{\"status\":\"UP\"}")
+            .addHealthCheck("http://football-player:18082/actuator/health", "{\"status\":\"UP\"}")
+            .addHealthCheck("http://football-query:18083/actuator/health", "{\"status\":\"UP\"}")
+            .addHealthCheck("http://connect:8083/connectors", "[]");
 
         rest = new RestTemplate(new HttpComponentsClientHttpRequestFactory());
 
@@ -91,13 +90,14 @@ public class BasicIntegrationTest {
         eventConsumer = new KafkaConsumer<>(consumerProps);
 
         dockerCompose.up();
+        dockerCompose.waitUntilServicesAreAvailable(180, SECONDS);
 
-        // create database and some initial data
-        jdbc = new JdbcTemplate(new SimpleDriverDataSource(new Driver(),
-            "jdbc:postgresql://localhost:5432/postgres", "postgres", "postgres"));
-        jdbc.execute("CREATE TABLE IF NOT EXISTS players (id bigint PRIMARY KEY, name varchar(50) NOT NULL)");
-        jdbc.execute("INSERT INTO players VALUES (101, 'Player One') ON CONFLICT DO NOTHING");
-        jdbc.execute("INSERT INTO players VALUES (102, 'Player Two') ON CONFLICT DO NOTHING");
+        // create database and insert some initial data
+        postgres = new JdbcTemplate(new SimpleDriverDataSource(new Driver(),
+            "jdbc:postgresql://postgres:5432/postgres", "postgres", "postgres"));
+        postgres.execute("CREATE TABLE IF NOT EXISTS players (id bigint PRIMARY KEY, name varchar(50) NOT NULL)");
+        postgres.execute("INSERT INTO players VALUES (101, 'Player One') ON CONFLICT DO NOTHING");
+        postgres.execute("INSERT INTO players VALUES (102, 'Player Two') ON CONFLICT DO NOTHING");
 
         createConnector("http://localhost:8083/connectors/", "football-connector.json");
     }
@@ -117,7 +117,7 @@ public class BasicIntegrationTest {
         assertThat(get("http://localhost:18083/query/matchScores").length).isEqualTo(0);
 
         // create another player
-        jdbc.execute("INSERT INTO players VALUES (103, 'Player Three') ON CONFLICT DO NOTHING");
+        postgres.execute("INSERT INTO players VALUES (103, 'Player Three') ON CONFLICT DO NOTHING");
         waitForEvents(PlayerStartedCareer.class, "101", "102", "103");
 
         // schedule a new match
@@ -224,7 +224,7 @@ public class BasicIntegrationTest {
     private static <T extends Event> void waitForEvents(Class<T> type, String... eventIds) {
         long timeout = System.currentTimeMillis() + EVENT_TIMEOUT;
 
-        Collection<String> search = new ArrayList<>(Arrays.asList(eventIds));
+        Collection<String> expected = new ArrayList<>(Arrays.asList(eventIds));
         Collection<String> found = new ArrayList<>();
         Collection<String> redundant = new ArrayList<>();
 
@@ -236,13 +236,13 @@ public class BasicIntegrationTest {
             ConsumerRecords<String, String> records = eventConsumer.poll(poolTimeout);
 
             for (ConsumerRecord<String, String> record : records) {
-                if (search.remove(record.key())) {
+                if (expected.remove(record.key())) {
                     found.add(record.key());
                 } else {
                     redundant.add(record.key());
                 }
             }
-            if (search.isEmpty()) {
+            if (expected.isEmpty()) {
                 logger.debug("The expected events have been received: " + Arrays.toString(eventIds));
                 break;
             }
@@ -251,10 +251,10 @@ public class BasicIntegrationTest {
         while (poolTimeout > 0);
 
         if (!redundant.isEmpty()) {
-            logger.warn("Some redundant events have been found in topic " + topic + ": " + search);
+            logger.warn("Some redundant events have been found in topic " + topic + ": " + expected);
         }
-        if (!search.isEmpty()) {
-            Assert.fail("The expected events in topic " + topic + " should be: " + search + ", but found: " + found);
+        if (!expected.isEmpty()) {
+            Assert.fail("The expected events in topic " + topic + " should be: " + expected + ", but found: " + found);
         }
     }
 
