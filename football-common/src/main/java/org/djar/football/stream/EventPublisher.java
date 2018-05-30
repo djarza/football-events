@@ -3,7 +3,7 @@ package org.djar.football.stream;
 import java.util.UUID;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.djar.football.Events;
+import org.djar.football.Topics;
 import org.djar.football.event.Event;
 import org.djar.football.event.EventMetadata;
 import org.slf4j.Logger;
@@ -27,7 +27,7 @@ public class EventPublisher {
     public Mono<Void> fire(Event event) {
         return Mono.create(sink -> {
             fillOut(event);
-            String topic = Events.topicName(event.getClass());
+            String topic = Topics.topicName(event.getClass());
             ProducerRecord<String, Event> record = new ProducerRecord<>(topic, 0, event.getMetadata().getTimestamp(),
                     event.getAggId(), event);
             logger.debug("New {} event created: {}", event.getClass().getSimpleName(), event.getAggId());

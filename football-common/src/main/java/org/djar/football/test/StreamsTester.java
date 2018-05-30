@@ -27,7 +27,7 @@ import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
 import org.apache.kafka.streams.test.ConsumerRecordFactory;
-import org.djar.football.Events;
+import org.djar.football.Topics;
 import org.djar.football.event.Event;
 import org.djar.football.stream.JsonPojoSerde;
 import org.springframework.util.FileSystemUtils;
@@ -70,7 +70,7 @@ public class StreamsTester {
         int eventSeq = 1;
 
         for (Event event : events) {
-            String topic = Events.topicName(event.getClass());
+            String topic = Topics.topicName(event.getClass());
             ConsumerRecord<byte[], byte[]> record = factory.create(topic, event.getAggId(), event);
             testDriver.pipeInput(record);
         }

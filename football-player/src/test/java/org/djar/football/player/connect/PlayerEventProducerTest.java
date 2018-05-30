@@ -7,8 +7,7 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
-import org.djar.football.Events;
-import org.djar.football.event.Event;
+import org.djar.football.Topics;
 import org.djar.football.event.PlayerStartedCareer;
 import org.djar.football.stream.EventPublisher;
 import org.djar.football.stream.JsonPojoSerde;
@@ -41,7 +40,7 @@ public class PlayerEventProducerTest {
         String json = StreamUtils.copyToString(getClass().getResourceAsStream("player-inserted.json"),
                 Charset.defaultCharset());
         tester.sendStringMessage(1L, json, "fb-connect.public.players");
-        ProducerRecord<String, PlayerStartedCareer> event = tester.read(Events.topicName(PlayerStartedCareer.class),
+        ProducerRecord<String, PlayerStartedCareer> event = tester.read(Topics.topicName(PlayerStartedCareer.class),
                 new StringDeserializer(), new JsonPojoSerde<>(PlayerStartedCareer.class));
 
         assertThat(event.key()).isEqualTo("1");

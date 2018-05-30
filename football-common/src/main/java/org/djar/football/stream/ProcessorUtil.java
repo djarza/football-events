@@ -9,7 +9,7 @@ import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.kafka.streams.state.StoreBuilder;
 import org.apache.kafka.streams.state.Stores;
-import org.djar.football.Events;
+import org.djar.football.Topics;
 import org.djar.football.event.Event;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +23,7 @@ public class ProcessorUtil {
 
     public static <E extends Event, D> void addProcessor(Topology topology, Class<E> eventType,
             EventProcessor<E, D> proc, String store) {
-        String topic = Events.topicName(eventType);
+        String topic = Topics.topicName(eventType);
         topology.addSource(eventType.getSimpleName() + "Source", Serdes.String().deserializer(),
                 new JsonPojoSerde<E>(eventType), topic)
                 .addProcessor(eventType.getSimpleName() + "Process",

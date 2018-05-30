@@ -24,7 +24,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.djar.football.Events;
+import org.djar.football.Topics;
 import org.djar.football.event.CardReceived;
 import org.djar.football.event.Event;
 import org.djar.football.event.GoalScored;
@@ -228,7 +228,7 @@ public class BasicIntegrationTest {
         Collection<String> found = new ArrayList<>();
         Collection<String> redundant = new ArrayList<>();
 
-        String topic = Events.topicName(type);
+        String topic = Topics.topicName(type);
         eventConsumer.subscribe(Collections.singletonList(topic));
         long poolTimeout = EVENT_TIMEOUT;
 

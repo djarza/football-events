@@ -8,7 +8,7 @@ import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
-import org.djar.football.Events;
+import org.djar.football.Topics;
 import org.djar.football.event.PlayerStartedCareer;
 import org.djar.football.stream.EventPublisher;
 import org.djar.football.stream.JsonNodeSerde;
@@ -21,7 +21,7 @@ public class PlayerEventProducer {
     private static final Logger logger = LoggerFactory.getLogger(PlayerEventProducer.class);
 
     private static final String CONNECT_PLAYERS_TOPIC = "fb-connect.public.players";
-    private static final String PLAYER_STARTED_CAREER_TOPIC = Events.topicName(PlayerStartedCareer.class);
+    private static final String PLAYER_STARTED_CAREER_TOPIC = Topics.topicName(PlayerStartedCareer.class);
 
     private final EventPublisher eventPublisher;
 

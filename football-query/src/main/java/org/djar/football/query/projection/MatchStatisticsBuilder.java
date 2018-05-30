@@ -17,7 +17,7 @@ import org.apache.kafka.streams.kstream.KTable;
 import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.kstream.Serialized;
 import org.apache.kafka.streams.state.KeyValueStore;
-import org.djar.football.Events;
+import org.djar.football.Topics;
 import org.djar.football.event.GoalScored;
 import org.djar.football.event.MatchFinished;
 import org.djar.football.event.MatchStarted;
@@ -30,9 +30,9 @@ public class MatchStatisticsBuilder {
     public static final String MATCH_SCORES_STORE = "match_scores_store";
     public static final String RANKING_STORE = "ranking_store";
 
-    private static final String MATCH_STARTED_TOPIC = Events.topicName(MatchStarted.class);
-    private static final String GOAL_SCORED_TOPIC = Events.topicName(GoalScored.class);
-    private static final String MATCH_FINISHED_TOPIC = Events.topicName(MatchFinished.class);
+    private static final String MATCH_STARTED_TOPIC = Topics.topicName(MatchStarted.class);
+    private static final String GOAL_SCORED_TOPIC = Topics.topicName(GoalScored.class);
+    private static final String MATCH_FINISHED_TOPIC = Topics.topicName(MatchFinished.class);
 
     private long matchGoalTimeDifference = (
             /* standard time */

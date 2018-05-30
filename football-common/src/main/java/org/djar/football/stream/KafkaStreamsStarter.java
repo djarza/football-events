@@ -1,6 +1,6 @@
 package org.djar.football.stream;
 
-import static org.djar.football.Events.TOPIC_NAME_PREFIX;
+import static org.djar.football.Topics.TOPIC_NAME_PREFIX;
 
 import java.util.Properties;
 import java.util.Set;
