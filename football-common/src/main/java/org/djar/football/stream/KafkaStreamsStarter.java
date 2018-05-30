@@ -21,17 +21,31 @@ public class KafkaStreamsStarter {
 
     private static final Logger logger = LoggerFactory.getLogger(KafkaStreamsStarter.class);
 
-    private static final int KAFKA_CONNECT_RETRY_DELAY = 2000;
-    private static final int KAFKA_CONNECTION_TIMEOUT = 20000;
-    private static final int STREAMS_STARTUP_TIMEOUT = 20000;
-
     // the number of football topics - docker-compose.yml/kafka/KAFKA_CREATE_TOPICS
     private static final int FB_TOPIC_COUNT = 7;
 
-    private KafkaStreamsStarter() {
+    private final String kafkaBootstrapAddress;
+    private final Topology topology;
+    private final String applicationId;
+
+    private long kafkaTimeout = 60000;
+    private long streamsStartupTimeout = 20000;
+
+    public KafkaStreamsStarter(String kafkaBootstrapAddress, Topology topology, String applicationId) {
+        this.kafkaBootstrapAddress = kafkaBootstrapAddress;
+        this.topology = topology;
+        this.applicationId = applicationId;
     }
 
-    public static KafkaStreams start(String kafkaBootstrapAddress, Topology topology, String applicationId) {
+    public void setKafkaTimeout(long kafkaTimeout) {
+        this.kafkaTimeout = kafkaTimeout;
+    }
+
+    public void setStreamsStartupTimeout(long streamsStartupTimeout) {
+        this.streamsStartupTimeout = streamsStartupTimeout;
+    }
+
+    public KafkaStreams start() {
         Properties props = new Properties();
         props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBootstrapAddress);
         props.put(StreamsConfig.CLIENT_ID_CONFIG, applicationId);
@@ -46,47 +60,64 @@ public class KafkaStreamsStarter {
         kafkaStreams.setUncaughtExceptionHandler((thread, exception) -> logger.error(thread.toString(), exception));
 
         // wait for Kafka and football topics creation to avoid endless REBALANCING problem
-        waitForKafkaAndTopics(kafkaBootstrapAddress);
+        waitForKafkaAndTopics();
         startStreams(kafkaStreams);
 
         logger.debug("Started Kafka Streams, Kafka bootstrap: {}", kafkaBootstrapAddress);
         return kafkaStreams;
     }
 
-    private static void waitForKafkaAndTopics(String kafkaBootstrapAddress) {
+    private void waitForKafkaAndTopics() {
         Properties properties = new Properties();
         properties.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBootstrapAddress);
-        properties.put(AdminClientConfig.REQUEST_TIMEOUT_MS_CONFIG, KAFKA_CONNECTION_TIMEOUT);
-        Set<String> topics;
+        properties.put(AdminClientConfig.REQUEST_TIMEOUT_MS_CONFIG, 2000);
 
+        long timeout = System.currentTimeMillis() + kafkaTimeout;
+
+        // football topics are created at Kafka startup
+        // wait until all of them are created
         try (AdminClient client = KafkaAdminClient.create(properties)) {
             while (true) {
-                try {
-                    topics = client.listTopics().names().get();
+                Set<String> topicNames = null;
 
-                    // wait until all football topics are created
-                    // these topics are created at Kafka startup
-                    if (topics.stream().filter(name -> name.startsWith(TOPIC_NAME_PREFIX)).count() == FB_TOPIC_COUNT) {
+                try {
+                    topicNames = client.listTopics().names().get();
+
+                    if (containsFootballTopics(topicNames)) {
+                        logger.trace("Required topics exist: {}", topicNames);
                         break;
                     }
                 } catch (ExecutionException e) {
                     // ignore retriable errors, especially timeouts
                     if (!(e.getCause() instanceof RetriableException)) {
-                        throw e;
+                        throw new RuntimeException("Kafka connection error " + kafkaBootstrapAddress, e);
                     }
                     logger.trace("Trying to connect to Kafka {}", e);
                 }
-                Thread.sleep(KAFKA_CONNECT_RETRY_DELAY);
+                checkTimeout(kafkaBootstrapAddress, timeout, topicNames);
+                Thread.sleep(2000);
             }
-        } catch (RuntimeException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new RuntimeException("Kafka connection error " + kafkaBootstrapAddress, e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupted();
         }
-        logger.trace("Required topics exist: {}", topics);
     }
 
-    private static void startStreams(KafkaStreams kafkaStreams) {
+    private void checkTimeout(String kafkaBootstrapAddress, long timeout, Set<String> topicNames) {
+        if (System.currentTimeMillis() > timeout) {
+            if (topicNames == null || topicNames.isEmpty()) {
+                throw new RuntimeException("Timeout waiting for Kafka. Kafka is not available " +
+                        kafkaBootstrapAddress);
+            }
+            throw new RuntimeException("Timeout waiting for Kafka. " +
+                    "Some '" + TOPIC_NAME_PREFIX + "*' topics are missing, found only: " + topicNames);
+        }
+    }
+
+    private boolean containsFootballTopics(Set<String> topicNames) {
+        return topicNames.stream().filter(name -> name.startsWith(TOPIC_NAME_PREFIX)).count() == FB_TOPIC_COUNT;
+    }
+
+    private void startStreams(KafkaStreams kafkaStreams) {
         CountDownLatch streamsStartedLatch = new CountDownLatch(1);
 
         // wait for consistent state
@@ -99,7 +130,7 @@ public class KafkaStreamsStarter {
         });
         kafkaStreams.cleanUp();
         kafkaStreams.start();
-        long timeout = System.currentTimeMillis() + STREAMS_STARTUP_TIMEOUT;
+        long timeout = System.currentTimeMillis() + streamsStartupTimeout;
 
         try {
             streamsStartedLatch.await(timeout - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
@@ -110,8 +141,8 @@ public class KafkaStreamsStarter {
         KafkaStreams.State state = kafkaStreams.state();
 
         if (state != KafkaStreams.State.RUNNING) {
-            logger.error("Unable to start Kafka Streams in {} s, the current state is {}",
-                    STREAMS_STARTUP_TIMEOUT, state);
+            logger.error("Unable to start Kafka Streams in {} ms, the current state is {}",
+                    streamsStartupTimeout, state);
             System.exit(1);
         }
     }

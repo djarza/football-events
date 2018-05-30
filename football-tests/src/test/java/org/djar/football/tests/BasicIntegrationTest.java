@@ -72,10 +72,10 @@ public class BasicIntegrationTest {
     @BeforeClass
     public static void setup()  {
         dockerCompose = new DockerCompose()
-            .addHealthCheck("http://football-match:18081/actuator/health", "{\"status\":\"UP\"}")
-            .addHealthCheck("http://football-player:18082/actuator/health", "{\"status\":\"UP\"}")
-            .addHealthCheck("http://football-query:18083/actuator/health", "{\"status\":\"UP\"}")
-            .addHealthCheck("http://connect:8083/connectors", "[]");
+            .addHealthCheck("http://football-match:18081/actuator/health", "\\{\"status\":\"UP\"\\}")
+            .addHealthCheck("http://football-player:18082/actuator/health", "\\{\"status\":\"UP\"\\}")
+            .addHealthCheck("http://football-query:18083/actuator/health", "\\{\"status\":\"UP\"\\}")
+            .addHealthCheck("http://connect:8083/connectors", "\\[.*\\]"); // match any response
 
         rest = new RestTemplate(new HttpComponentsClientHttpRequestFactory());
 
@@ -99,7 +99,7 @@ public class BasicIntegrationTest {
         postgres.execute("INSERT INTO players VALUES (101, 'Player One') ON CONFLICT DO NOTHING");
         postgres.execute("INSERT INTO players VALUES (102, 'Player Two') ON CONFLICT DO NOTHING");
 
-        createConnector("http://localhost:8083/connectors/", "football-connector.json");
+        createConnector("http://connect:8083/connectors/", "football-connector.json");
     }
 
     @AfterClass
@@ -114,42 +114,42 @@ public class BasicIntegrationTest {
     @Test
     public void playAMatch() throws Exception {
         // no matches and no scores
-        assertThat(get("http://localhost:18083/query/matchScores").length).isEqualTo(0);
+        assertThat(get("http://football-query:18083/query/matchScores").length).isEqualTo(0);
 
         // create another player
         postgres.execute("INSERT INTO players VALUES (103, 'Player Three') ON CONFLICT DO NOTHING");
         waitForEvents(PlayerStartedCareer.class, "101", "102", "103");
 
         // schedule a new match
-        assertThat(send("http://localhost:18081/command/matches", POST,
+        assertThat(send("http://football-match:18081/command/matches", POST,
                 "{\"id\":\"m1\", \"seasonId\":\"s1\", \"date\":\"2018-05-26T15:00:00\"," +
                 "\"homeClubId\":\"Man Utd\", \"awayClubId\":\"Liverpool\"}"
             )).isEqualTo(CREATED);
 
         // the request is processed asynchronously, so wait for the right event before the next step
-        waitForEvents(MatchScheduled.class, "m1");
+//        waitForEvents(MatchScheduled.class, "m1");
 
         // change match status from SCHEDULED to STARTED
-        assertThat(send("http://localhost:18081/command/matches/m1",
+        assertThat(send("http://football-match:18081/command/matches/m1",
                 PATCH, "\"STARTED\""))
             .isEqualTo(NO_CONTENT);
 
         waitForEvents(MatchStarted.class, "m1");
 
         // some goals and cards during the match
-        assertThat(send("http://localhost:18081/command/matches/m1/homeGoals", POST,
+        assertThat(send("http://football-match:18081/command/matches/m1/homeGoals", POST,
                 "{\"id\":\"g1\", \"minute\":20, \"scorerId\":\"101\"}"))
             .isEqualTo(CREATED);
-        assertThat(send("http://localhost:18081/command/matches/m1/awayGoals", POST,
+        assertThat(send("http://football-match:18081/command/matches/m1/awayGoals", POST,
                 "{\"id\":\"g2\", \"minute\":30, \"scorerId\":\"102\"}"))
             .isEqualTo(CREATED);
-        assertThat(send("http://localhost:18081/command/matches/m1/cards", POST,
+        assertThat(send("http://football-match:18081/command/matches/m1/cards", POST,
                 "{\"id\":\"c1\", \"minute\":40, \"receiverId\":\"102\", \"type\":\"YELLOW\"}"))
             .isEqualTo(CREATED);
-        assertThat(send("http://localhost:18081/command/matches/m1/cards", POST,
+        assertThat(send("http://football-match:18081/command/matches/m1/cards", POST,
                 "{\"id\":\"c1\", \"minute\":40, \"receiverId\":\"103\", \"type\":\"RED\"}"))
             .isEqualTo(CREATED);
-        assertThat(send("http://localhost:18081/command/matches/m1/homeGoals", POST,
+        assertThat(send("http://football-match:18081/command/matches/m1/homeGoals", POST,
                 "{\"id\":\"g3\", \"minute\":50, \"scorerId\":\"101\"}"))
             .isEqualTo(CREATED);
 
@@ -157,14 +157,14 @@ public class BasicIntegrationTest {
         waitForEvents(CardReceived.class, "m1", "m1");
 
         // finish match
-        assertThat(send("http://localhost:18081/command/matches/m1", PATCH,
+        assertThat(send("http://football-match:18081/command/matches/m1", PATCH,
                 "\"FINISHED\""))
             .isEqualTo(NO_CONTENT);
 
         waitForEvents(MatchFinished.class, "m1");
 
         // check the score
-        Map[] scoresResponse = get("http://localhost:18083/query/matchScores");
+        Map[] scoresResponse = get("http://football-query:18083/query/matchScores");
         assertThat(scoresResponse.length).isEqualTo(1);
         assertThat(scoresResponse[0].get("homeClubId")).isEqualTo("Man Utd");
         assertThat(scoresResponse[0].get("awayClubId")).isEqualTo("Liverpool");
@@ -174,28 +174,28 @@ public class BasicIntegrationTest {
 
     @Test
     public void startNonExistentMatch() {
-        assertThat(send("http://localhost:18081/command/matches/FAKE_MATCH", PATCH,
+        assertThat(send("http://football-match:18081/command/matches/FAKE_MATCH", PATCH,
             "\"STARTED\""))
             .isEqualTo(NOT_FOUND);
     }
 
     @Test
     public void scoreGoalInNonExistentMatch() {
-        assertThat(send("http://localhost:18081/command/matches/FAKE_MATCH", PATCH,
+        assertThat(send("http://football-match:18081/command/matches/FAKE_MATCH", PATCH,
             "\"STARTED\""))
             .isEqualTo(NOT_FOUND);
     }
 
     @Test
     public void scoreGoalInNotStartedMatch() {
-        assertThat(send("http://localhost:18081/command/matches", POST,
+        assertThat(send("http://football-match:18081/command/matches", POST,
             "{\"id\":\"NOT_STARTED_MATCH\", \"seasonId\":\"s1\", \"date\":\"2018-05-26T15:00:00\"," +
                 "\"homeClubId\":\"Man City\", \"awayClubId\":\"Chelsea\"}"
         )).isEqualTo(CREATED);
 
         waitForEvents(MatchScheduled.class, "NOT_STARTED_MATCH");
 
-        assertThat(send("http://localhost:18081/command/matches/NOT_STARTED_MATCH/homeGoals", POST,
+        assertThat(send("http://football-match:18081/command/matches/NOT_STARTED_MATCH/homeGoals", POST,
             "{\"id\":\"g1000\", \"minute\":10, \"scorerId\":\"101\"}"))
             .isEqualTo(UNPROCESSABLE_ENTITY);
     }
@@ -259,21 +259,21 @@ public class BasicIntegrationTest {
     }
 
     private static void createConnector(String connectorRestApiUrl, String request) {
-        try {
-            String json = StreamUtils.copyToString(
-                BasicIntegrationTest.class.getResourceAsStream(request), Charset.defaultCharset());
-            HttpStatus status = send(connectorRestApiUrl, POST, json);
+        String json;
 
-            if (status != CREATED) {
-                throw new RuntimeException("Unable to create Kafka connector, HTTP status: " + status);
-            }
-        } catch (HttpClientErrorException e) {
-            // accept error if the connector already exists
-            if (e.getStatusCode() != CONFLICT) {
-                throw new RuntimeException("Unable to create Kafka connector", e);
-            }
+        try {
+            json = StreamUtils.copyToString(
+                BasicIntegrationTest.class.getResourceAsStream(request), Charset.defaultCharset());
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+        HttpStatus status = send(connectorRestApiUrl, POST, json);
+
+        if (status != CREATED) {
+            if (status != CONFLICT) {
+                throw new RuntimeException("Unable to create Kafka connector, HTTP status: " + status);
+            }
+            logger.warn("Connector already exists");
         }
     }
 }

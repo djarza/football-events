@@ -39,6 +39,7 @@ public class DockerCompose {
 
         try {
             String output = execProcess(UP_COMMAND);
+            // containers are not started
             createdContainers = output.contains("Creating network");
         } catch (RuntimeException e) {
             startupFailed = true;
@@ -81,7 +82,7 @@ public class DockerCompose {
                 }
                 if (System.currentTimeMillis() > maxTime) {
                     startupFailed = true;
-                    throw new RuntimeException("No response from " + urls.keySet());
+                    throw new RuntimeException("Timeout waiting for services. No response from: " + urls.keySet());
                 }
             }
             if (urls.isEmpty()) {
@@ -97,7 +98,7 @@ public class DockerCompose {
             ResponseEntity<String> result = rest.getForEntity(url, String.class);
 
             if (result.getStatusCode().is2xxSuccessful()) {
-                if (result.getBody().trim().equals(expectedResponse)) {
+                if (result.getBody().trim().matches(expectedResponse)) {
                     logger.debug("{} is UP", url);
                     return true;
                 }

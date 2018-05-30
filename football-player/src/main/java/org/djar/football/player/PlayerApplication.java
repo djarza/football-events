@@ -9,10 +9,12 @@ import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
 import org.djar.football.event.Event;
 import org.djar.football.player.connect.PlayerEventProducer;
+import org.djar.football.player.domain.Player;
 import org.djar.football.player.snapshot.SnapshotBuilder;
 import org.djar.football.stream.EventPublisher;
 import org.djar.football.stream.JsonPojoSerde;
 import org.djar.football.stream.KafkaStreamsStarter;
+import org.djar.football.util.MicroserviceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,7 +27,8 @@ import org.springframework.context.annotation.Bean;
 public class PlayerApplication {
 
     private static final Logger logger = LoggerFactory.getLogger(PlayerApplication.class);
-    private static final String PROCESS_ID = processId();
+
+    private static final String APP_ID = MicroserviceUtils.applicationId(PlayerApplication.class);
 
     @Value("${kafka.bootstrapAddress}")
     private String kafkaBootstrapAddress;
@@ -33,13 +36,22 @@ public class PlayerApplication {
     @Value("${apiVersion}")
     private int apiVersion;
 
+    @Value("${kafkaTimeout:60000}")
+    private long kafkaTimeout;
+
+    @Value("${streamsStartupTimeout:20000}")
+    private long streamsStartupTimeout;
+
     @Bean
     public KafkaStreams kafkaStreams() {
         StreamsBuilder streamsBuilder = new StreamsBuilder();
         Topology topology = streamsBuilder.build();
         new SnapshotBuilder().init(topology);
         new PlayerEventProducer(eventPublisher()).build(streamsBuilder);
-        return KafkaStreamsStarter.start(kafkaBootstrapAddress, topology, getClass().getName());
+        KafkaStreamsStarter starter = new KafkaStreamsStarter(kafkaBootstrapAddress, topology, APP_ID);
+        starter.setKafkaTimeout(kafkaTimeout);
+        starter.setStreamsStartupTimeout(streamsStartupTimeout);
+        return starter.start();
     }
 
     @Bean
@@ -48,18 +60,13 @@ public class PlayerApplication {
         producerProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBootstrapAddress);
         producerProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         producerProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonPojoSerde.class.getName());
-        producerProps.put(ProducerConfig.CLIENT_ID_CONFIG, getClass().getName());
+        producerProps.put(ProducerConfig.CLIENT_ID_CONFIG, APP_ID);
         KafkaProducer<String, Event> kafkaProducer = new KafkaProducer<>(producerProps);
-        return new EventPublisher(kafkaProducer, getClass().getSimpleName(), apiVersion);
-    }
-
-    private static String processId() {
-        // a makeshift; should be a microservice's instance identifier like IP or Kubernetes POD name
-        return PlayerApplication.class.getSimpleName() + new ApplicationPid().toString();
+        return new EventPublisher(kafkaProducer, APP_ID, apiVersion);
     }
 
     public static void main(String[] args) {
-        logger.info("Process ID: {}", PROCESS_ID);
+        logger.info("Application ID: {}", APP_ID);
         SpringApplication.run(PlayerApplication.class, args);
     }
 }
