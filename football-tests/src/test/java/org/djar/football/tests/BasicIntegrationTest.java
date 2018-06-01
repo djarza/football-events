@@ -60,6 +60,7 @@ public class BasicIntegrationTest {
     private static final Logger logger = LoggerFactory.getLogger(BasicIntegrationTest.class);
 
     private static final int EVENT_TIMEOUT = 30000;
+    private static final int REST_RETRY_TIMEOUT = 5000;
 
     private static DockerCompose dockerCompose;
     private static RestTemplate rest;
@@ -92,7 +93,7 @@ public class BasicIntegrationTest {
         dockerCompose.up();
         dockerCompose.waitUntilServicesAreAvailable(180, SECONDS);
 
-        // create database and insert some initial data
+        // create database with some initial data
         postgres = new JdbcTemplate(new SimpleDriverDataSource(new Driver(),
             "jdbc:postgresql://postgres:5432/postgres", "postgres", "postgres"));
         postgres.execute("CREATE TABLE IF NOT EXISTS players (id bigint PRIMARY KEY, name varchar(50) NOT NULL)");
@@ -114,58 +115,49 @@ public class BasicIntegrationTest {
     @Test
     public void playAMatch() throws Exception {
         // no matches and no scores
-        assertThat(get("http://football-query:18083/query/matchScores").length).isEqualTo(0);
+        get("http://football-query:18083/query/matchScores", 0);
 
         // create another player
         postgres.execute("INSERT INTO players VALUES (103, 'Player Three') ON CONFLICT DO NOTHING");
-        waitForEvents(PlayerStartedCareer.class, "101", "102", "103");
+        assertEvents(PlayerStartedCareer.class, "101", "102", "103");
 
         // schedule a new match
-        assertThat(send("http://football-match:18081/command/matches", POST,
-                "{\"id\":\"m1\", \"seasonId\":\"s1\", \"date\":\"2018-05-26T15:00:00\"," +
-                "\"homeClubId\":\"Man Utd\", \"awayClubId\":\"Liverpool\"}"
-            )).isEqualTo(CREATED);
+        assertResponse("http://football-match:18081/command/matches",
+            POST, "{\"id\":\"m1\", \"seasonId\":\"s1\", \"date\":\"2018-05-26T15:00:00\"," +
+                "\"homeClubId\":\"Man Utd\", \"awayClubId\":\"Liverpool\"}", CREATED);
 
         // the request is processed asynchronously, so wait for the right event before the next step
-//        waitForEvents(MatchScheduled.class, "m1");
+        assertEvents(MatchScheduled.class, "m1");
 
         // change match status from SCHEDULED to STARTED
-        assertThat(send("http://football-match:18081/command/matches/m1",
-                PATCH, "\"STARTED\""))
-            .isEqualTo(NO_CONTENT);
+        assertResponse("http://football-match:18081/command/matches/m1",
+            PATCH, "\"STARTED\"", NO_CONTENT, NOT_FOUND);
 
-        waitForEvents(MatchStarted.class, "m1");
+        assertEvents(MatchStarted.class, "m1");
 
         // some goals and cards during the match
-        assertThat(send("http://football-match:18081/command/matches/m1/homeGoals", POST,
-                "{\"id\":\"g1\", \"minute\":20, \"scorerId\":\"101\"}"))
-            .isEqualTo(CREATED);
-        assertThat(send("http://football-match:18081/command/matches/m1/awayGoals", POST,
-                "{\"id\":\"g2\", \"minute\":30, \"scorerId\":\"102\"}"))
-            .isEqualTo(CREATED);
-        assertThat(send("http://football-match:18081/command/matches/m1/cards", POST,
-                "{\"id\":\"c1\", \"minute\":40, \"receiverId\":\"102\", \"type\":\"YELLOW\"}"))
-            .isEqualTo(CREATED);
-        assertThat(send("http://football-match:18081/command/matches/m1/cards", POST,
-                "{\"id\":\"c1\", \"minute\":40, \"receiverId\":\"103\", \"type\":\"RED\"}"))
-            .isEqualTo(CREATED);
-        assertThat(send("http://football-match:18081/command/matches/m1/homeGoals", POST,
-                "{\"id\":\"g3\", \"minute\":50, \"scorerId\":\"101\"}"))
-            .isEqualTo(CREATED);
+        assertResponse("http://football-match:18081/command/matches/m1/homeGoals",
+            POST, "{\"id\":\"g1\", \"minute\":20, \"scorerId\":\"101\"}", CREATED, UNPROCESSABLE_ENTITY);
+        assertResponse("http://football-match:18081/command/matches/m1/awayGoals",
+            POST, "{\"id\":\"g2\", \"minute\":30, \"scorerId\":\"102\"}", CREATED);
+        assertResponse("http://football-match:18081/command/matches/m1/cards",
+            POST, "{\"id\":\"c1\", \"minute\":40, \"receiverId\":\"102\", \"type\":\"YELLOW\"}", CREATED);
+        assertResponse("http://football-match:18081/command/matches/m1/cards",
+            POST, "{\"id\":\"c1\", \"minute\":40, \"receiverId\":\"103\", \"type\":\"RED\"}", CREATED);
+        assertResponse("http://football-match:18081/command/matches/m1/homeGoals",
+            POST, "{\"id\":\"g3\", \"minute\":50, \"scorerId\":\"101\"}", CREATED);
 
-        waitForEvents(GoalScored.class, "m1", "m1", "m1");
-        waitForEvents(CardReceived.class, "m1", "m1");
+        assertEvents(GoalScored.class, "m1", "m1", "m1");
+        assertEvents(CardReceived.class, "m1", "m1");
 
         // finish match
-        assertThat(send("http://football-match:18081/command/matches/m1", PATCH,
-                "\"FINISHED\""))
-            .isEqualTo(NO_CONTENT);
+        assertResponse("http://football-match:18081/command/matches/m1",
+            PATCH, "\"FINISHED\"", NO_CONTENT);
 
-        waitForEvents(MatchFinished.class, "m1");
+        assertEvents(MatchFinished.class, "m1");
 
         // check the score
-        Map[] scoresResponse = get("http://football-query:18083/query/matchScores");
-        assertThat(scoresResponse.length).isEqualTo(1);
+        Map[] scoresResponse = get("http://football-query:18083/query/matchScores", 1);
         assertThat(scoresResponse[0].get("homeClubId")).isEqualTo("Man Utd");
         assertThat(scoresResponse[0].get("awayClubId")).isEqualTo("Liverpool");
         assertThat(scoresResponse[0].get("homeGoals")).isEqualTo(2);
@@ -174,30 +166,56 @@ public class BasicIntegrationTest {
 
     @Test
     public void startNonExistentMatch() {
-        assertThat(send("http://football-match:18081/command/matches/FAKE_MATCH", PATCH,
-            "\"STARTED\""))
-            .isEqualTo(NOT_FOUND);
+        assertResponse("http://football-match:18081/command/matches/FAKE_MATCH",
+            PATCH, "\"STARTED\"", NOT_FOUND);
     }
 
     @Test
     public void scoreGoalInNonExistentMatch() {
-        assertThat(send("http://football-match:18081/command/matches/FAKE_MATCH", PATCH,
-            "\"STARTED\""))
-            .isEqualTo(NOT_FOUND);
+        assertResponse("http://football-match:18081/command/matches/FAKE_MATCH",
+            PATCH, "\"STARTED\"", NOT_FOUND);
     }
 
     @Test
     public void scoreGoalInNotStartedMatch() {
-        assertThat(send("http://football-match:18081/command/matches", POST,
-            "{\"id\":\"NOT_STARTED_MATCH\", \"seasonId\":\"s1\", \"date\":\"2018-05-26T15:00:00\"," +
-                "\"homeClubId\":\"Man City\", \"awayClubId\":\"Chelsea\"}"
-        )).isEqualTo(CREATED);
+        assertResponse("http://football-match:18081/command/matches",
+            POST, "{\"id\":\"NOT_STARTED_MATCH\", \"seasonId\":\"s1\", \"date\":\"2018-05-26T15:00:00\"," +
+                "\"homeClubId\":\"Man City\", \"awayClubId\":\"Chelsea\"}", CREATED);
 
-        waitForEvents(MatchScheduled.class, "NOT_STARTED_MATCH");
+        assertEvents(MatchScheduled.class, "NOT_STARTED_MATCH");
 
-        assertThat(send("http://football-match:18081/command/matches/NOT_STARTED_MATCH/homeGoals", POST,
-            "{\"id\":\"g1000\", \"minute\":10, \"scorerId\":\"101\"}"))
-            .isEqualTo(UNPROCESSABLE_ENTITY);
+        assertResponse("http://football-match:18081/command/matches/NOT_STARTED_MATCH/homeGoals",
+            POST, "{\"id\":\"g1000\", \"minute\":10, \"scorerId\":\"101\"}", UNPROCESSABLE_ENTITY);
+    }
+
+    private static void assertResponse(String url, HttpMethod method, String json, HttpStatus expectedStatus) {
+        assertResponse(url, method, json, expectedStatus, null);
+    }
+
+    private static void assertResponse(String url, HttpMethod method, String json, HttpStatus expectedStatus,
+            HttpStatus retryStatus) {
+        HttpStatus currentStatus;
+        long timeout = System.currentTimeMillis() + REST_RETRY_TIMEOUT;
+
+        try {
+            do {
+                currentStatus = send(url, method, json);
+
+                if (currentStatus.equals(expectedStatus)) {
+                    return;
+                }
+                if (currentStatus.equals(retryStatus)) {
+                    logger.trace("Retry status received, trying again...");
+                    Thread.sleep(500);
+                    return;
+                }
+                Assert.fail("Expected response: " + expectedStatus + ", actual: " + currentStatus);
+            } while (System.currentTimeMillis() > timeout);
+
+            Assert.fail("Expected response: " + expectedStatus + ", actual: " + currentStatus);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupted();
+        }
     }
 
     private static HttpStatus send(String url, HttpMethod method, String json) {
@@ -212,16 +230,30 @@ public class BasicIntegrationTest {
         }
     }
 
-    private static Map[] get(String url) throws IOException {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        ResponseEntity<String> response = rest.getForEntity(url, String.class);
-        logger.trace(response.getBody());
+    private static Map[] get(String url, int expectedResultCount) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
-        return mapper.readerFor(Map[].class).readValue(response.getBody());
+        long timeout = System.currentTimeMillis() + REST_RETRY_TIMEOUT;
+        Map[] result = null;
+
+        try {
+            do {
+                ResponseEntity<String> response = rest.getForEntity(url, String.class);
+                logger.trace(response.getBody());
+                result = mapper.readerFor(Map[].class).readValue(response.getBody());
+
+                if (result.length == expectedResultCount) {
+                    return result;
+                }
+                logger.trace(result.length + " items received, trying again...");
+                Thread.sleep(500);
+            } while (System.currentTimeMillis() > timeout);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupted();
+        }
+        throw new AssertionError("Expected items: " + expectedResultCount + ", actual: " + result.length);
     }
 
-    private static <T extends Event> void waitForEvents(Class<T> type, String... eventIds) {
+    private static <T extends Event> void assertEvents(Class<T> type, String... eventIds) {
         long timeout = System.currentTimeMillis() + EVENT_TIMEOUT;
 
         Collection<String> expected = new ArrayList<>(Arrays.asList(eventIds));
