@@ -92,7 +92,7 @@ public class KafkaStreamsStarter {
                     if (!(e.getCause() instanceof RetriableException)) {
                         throw new RuntimeException("Kafka connection error " + kafkaBootstrapAddress, e);
                     }
-                    logger.trace("Trying to connect to Kafka {}", e);
+                    logger.trace("Trying to connect to Kafka {}", e.getMessage());
                 }
                 checkTimeout(kafkaBootstrapAddress, timeout, topicNames);
                 Thread.sleep(2000);

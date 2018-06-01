@@ -30,11 +30,11 @@ public class EventPublisher {
             String topic = Topics.topicName(event.getClass());
             ProducerRecord<String, Event> record = new ProducerRecord<>(topic, 0, event.getMetadata().getTimestamp(),
                     event.getAggId(), event);
-            logger.debug("New {} event created: {}", event.getClass().getSimpleName(), event.getAggId());
 
             producer.send(record, (metadata, exception) -> {
                 if (exception == null) {
                     sink.success();
+                    logger.debug("New {} event created: {}", event.getClass().getSimpleName(), event.getAggId());
                 } else {
                     sink.error(exception);
                 }
