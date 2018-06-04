@@ -24,6 +24,7 @@ import org.djar.football.event.MatchStarted;
 import org.djar.football.query.model.MatchScore;
 import org.djar.football.query.model.Ranking;
 import org.djar.football.stream.JsonPojoSerde;
+import org.djar.football.stream.StreamsUtils;
 
 public class MatchStatisticsBuilder {
 
@@ -58,48 +59,41 @@ public class MatchStatisticsBuilder {
         final JsonPojoSerde<MatchScore> matchScoreSerde = new JsonPojoSerde<>(MatchScore.class);
         final JsonPojoSerde<Ranking> rankingSerde = new JsonPojoSerde<>(Ranking.class);
 
-        KStream<String, MatchStarted> matchStartedStream = builder.stream(
-                MATCH_STARTED_TOPIC, Consumed.with(Serdes.String(), matchStartedSerde));
+        KStream<String, MatchStarted> matchStartedStream = builder
+                .stream(MATCH_STARTED_TOPIC, Consumed.with(Serdes.String(), matchStartedSerde));
 
-        KStream<String, GoalScored> goalStream = builder.stream(
-                GOAL_SCORED_TOPIC, Consumed.with(Serdes.String(), goalScoredSerde));
+        KStream<String, GoalScored> goalStream = builder
+                .stream(GOAL_SCORED_TOPIC, Consumed.with(Serdes.String(), goalScoredSerde));
 
-        KStream<String, MatchFinished> matchFinishedStream = builder.stream(
-                MATCH_FINISHED_TOPIC, Consumed.with(Serdes.String(), matchFinishedSerde));
+        KStream<String, MatchFinished> matchFinishedStream = builder
+                .stream(MATCH_FINISHED_TOPIC, Consumed.with(Serdes.String(), matchFinishedSerde));
 
-        KStream<String, MatchScore> scoreStream = matchStartedStream.leftJoin(goalStream,
-                (matchStarted, goalScored) -> {
-                    MatchScore score = new MatchScore(matchStarted.getHomeClubId(), matchStarted.getAwayClubId());
-                    score.count(goalScored);
-                    return score;
-                },
-                JoinWindows.of(matchGoalTimeDifference), Joined.with(Serdes.String(), matchStartedSerde,
-                    goalScoredSerde)
+        KStream<String, MatchScore> scoreStream = matchStartedStream
+                .leftJoin(goalStream, (match, goal) -> new MatchScore(match).goal(goal),
+                    JoinWindows.of(matchGoalTimeDifference), Joined.with(Serdes.String(), matchStartedSerde,
+                        goalScoredSerde)
         );
 
-        KTable<String, MatchScore> scoreTable = scoreStream.groupByKey().reduce(
-                MatchScore::aggregate, materialized(MATCH_SCORES_STORE, matchScoreSerde));
+        KTable<String, MatchScore> scoreTable = scoreStream
+                .groupByKey()
+                .reduce(MatchScore::aggregate, StreamsUtils.materialized(MATCH_SCORES_STORE, matchScoreSerde));
 
-        KStream<String, MatchScore> finalScoreStream = matchFinishedStream.leftJoin(
-                scoreTable, (matchFinished, matchScore) -> matchScore,
-                Joined.with(Serdes.String(), matchFinishedSerde, matchScoreSerde)
+        KStream<String, MatchScore> finalScoreStream = matchFinishedStream
+                .leftJoin(scoreTable, (matchFinished, matchScore) -> matchScore,
+                    Joined.with(Serdes.String(), matchFinishedSerde, matchScoreSerde)
         );
 
         // new key: clubId
-        KStream<String, Ranking> rankingStream = finalScoreStream.flatMap(
-                (clubId, matchScore) -> {
+        KStream<String, Ranking> rankingStream = finalScoreStream
+                .flatMap((clubId, matchScore) -> {
                     Collection<KeyValue<String, Ranking>> result = new LinkedList<>();
                     result.add(pair(matchScore.getHomeClubId(), matchScore.homeRanking()));
                     result.add(pair(matchScore.getAwayClubId(), matchScore.awayRanking()));
                     return result;
                 });
 
-        rankingStream.groupByKey(Serialized.with(Serdes.String(), rankingSerde)).reduce(
-                Ranking::aggregate, materialized(RANKING_STORE, rankingSerde));
-    }
-
-    private <V> Materialized<String, V, KeyValueStore<Bytes, byte[]>> materialized(String storeName, Serde<V> serde) {
-        return Materialized.<String, V, KeyValueStore<Bytes, byte[]>>as(storeName)
-            .withKeySerde(Serdes.String()).withValueSerde(serde);
+        rankingStream
+                .groupByKey(Serialized.with(Serdes.String(), rankingSerde))
+                .reduce(Ranking::aggregate, StreamsUtils.materialized(RANKING_STORE, rankingSerde));
     }
 }

@@ -47,7 +47,7 @@ public class MatchController {
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<Void> scheduleMatch(@RequestBody NewMatchRequest match) {
         MatchScheduled event = new MatchScheduled(match.getId(), match.getSeasonId(), match.getDate(),
-            match.getHomeClubId(), match.getAwayClubId());
+                match.getHomeClubId(), match.getAwayClubId());
         logger.debug("Creating event {}", event);
         return publisher.fire(event);
     }

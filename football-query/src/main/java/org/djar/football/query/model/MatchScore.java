@@ -2,6 +2,7 @@ package org.djar.football.query.model;
 
 import java.util.Objects;
 import org.djar.football.event.GoalScored;
+import org.djar.football.event.MatchStarted;
 
 public class MatchScore {
 
@@ -13,9 +14,9 @@ public class MatchScore {
     public MatchScore() {
     }
 
-    public MatchScore(String homeClubId, String awayClubId) {
-        this.homeClubId = homeClubId;
-        this.awayClubId = awayClubId;
+    public MatchScore(MatchStarted match) {
+        this.homeClubId = match.getHomeClubId();
+        this.awayClubId = match.getAwayClubId();
     }
 
     public MatchScore aggregate(MatchScore other) {
@@ -34,18 +35,18 @@ public class MatchScore {
         }
     }
 
-    public void count(GoalScored goal) {
-        if (goal == null) {
-            return;
+    public MatchScore goal(GoalScored goal) {
+        if (goal != null) {
+            if (homeClubId.equals(goal.getScoredFor())) {
+                homeGoals++;
+            } else if (awayClubId.equals(goal.getScoredFor())) {
+                awayGoals++;
+            } else {
+                throw new IllegalArgumentException("Goal is not assignet to match, home club: " + homeClubId
+                    + ", away club: " + awayClubId + ", goal id: " + goal.getAggId());
+            }
         }
-        if (homeClubId.equals(goal.getScoredFor())) {
-            homeGoals++;
-        } else if (awayClubId.equals(goal.getScoredFor())) {
-            awayGoals++;
-        } else {
-            throw new IllegalArgumentException("Goal is not assignet to match, home club: " + homeClubId
-                + ", away club: " + awayClubId + ", goal id: " + goal.getAggId());
-        }
+        return this;
     }
 
     public Ranking homeRanking() {

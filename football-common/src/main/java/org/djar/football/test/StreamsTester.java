@@ -89,7 +89,12 @@ public class StreamsTester {
     }
 
     public <K, V> KeyValueStore<K, V> getStore(String name) {
-        return testDriver.getKeyValueStore(name);
+        KeyValueStore<K, V> store = testDriver.getKeyValueStore(name);
+
+        if (store == null) {
+            throw new IllegalArgumentException("Store not found: " + name);
+        }
+        return store;
     }
 
     public void close() throws IOException {

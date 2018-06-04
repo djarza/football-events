@@ -2,8 +2,11 @@ package org.djar.football.stream;
 
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.Topology;
+import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.processor.AbstractProcessor;
 import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.state.KeyValueStore;
@@ -14,11 +17,17 @@ import org.djar.football.event.Event;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ProcessorUtil {
+public class StreamsUtils {
 
-    private static final Logger logger = LoggerFactory.getLogger(ProcessorUtil.class);
+    private static final Logger logger = LoggerFactory.getLogger(StreamsUtils.class);
 
-    private ProcessorUtil() {
+    private StreamsUtils() {
+    }
+
+    public static <V> Materialized<String, V, KeyValueStore<Bytes, byte[]>> materialized(String storeName,
+            Serde<V> serde) {
+        return Materialized.<String, V, KeyValueStore<Bytes, byte[]>>as(storeName)
+            .withKeySerde(Serdes.String()).withValueSerde(serde);
     }
 
     public static <E extends Event, D> void addProcessor(Topology topology, Class<E> eventType,

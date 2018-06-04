@@ -1,7 +1,7 @@
 package org.djar.football.player.snapshot;
 
-import static org.djar.football.stream.ProcessorUtil.addProcessor;
-import static org.djar.football.stream.ProcessorUtil.addStore;
+import static org.djar.football.stream.StreamsUtils.addProcessor;
+import static org.djar.football.stream.StreamsUtils.addStore;
 
 import org.apache.kafka.streams.Topology;
 import org.djar.football.event.PlayerStartedCareer;

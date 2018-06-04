@@ -1,0 +1,10 @@
+[
+  {"metadata":null,"id":"101","matchId":"1","minute":11,"receiverId":"A. Andreas Bouchalakis","type":"YELLOW"},
+  {"metadata":null,"id":"102","matchId":"3","minute":25,"receiverId":"F. Famara Diedhiou","type":"YELLOW"},
+  {"metadata":null,"id":"103","matchId":"4","minute":54,"receiverId":"A. Andreas Bouchalakis","type":"YELLOW"},
+  {"metadata":null,"id":"104","matchId":"4","minute":91,"receiverId":"D. Daryl Murphy","type":"RED"},
+  {"metadata":null,"id":"105","matchId":"5","minute":11,"receiverId":"F. Famara Diedhiou","type":"YELLOW"},
+  {"metadata":null,"id":"106","matchId":"5","minute":34,"receiverId":"A. Andreas Bouchalakis","type":"YELLOW"},
+  {"metadata":null,"id":"106","matchId":"5","minute":34,"receiverId":"J. James Vaughan","type":"YELLOW"},
+  {"metadata":null,"id":"107","matchId":"6","minute":70,"receiverId":"J. Joe Garner","type":"RED"}
+]
