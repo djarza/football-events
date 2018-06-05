@@ -1,18 +1,12 @@
 package org.djar.football.query.controller;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 import org.apache.kafka.streams.KafkaStreams;
-import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.QueryableStoreTypes;
 import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
-import org.djar.football.query.model.MatchScore;
-import org.djar.football.query.model.Ranking;
+import org.djar.football.model.MatchScore;
+import org.djar.football.model.TeamRanking;
 import org.djar.football.query.projection.MatchStatisticsBuilder;
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -36,9 +30,9 @@ public class StatisticsController {
     }
 
     @GetMapping("/rankings")
-    public Flux<Ranking> getRankings() {
+    public Flux<TeamRanking> getRankings() {
         return read(streams.store(MatchStatisticsBuilder.RANKING_STORE,
-            QueryableStoreTypes.<String, Ranking>keyValueStore()));
+            QueryableStoreTypes.<String, TeamRanking>keyValueStore()));
     }
 
     private <T> Flux<T> read(ReadOnlyKeyValueStore<String, T> store) {

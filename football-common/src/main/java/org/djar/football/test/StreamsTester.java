@@ -70,7 +70,7 @@ public class StreamsTester {
         int eventSeq = 1;
 
         for (Event event : events) {
-            String topic = Topics.topicName(event.getClass());
+            String topic = Topics.eventTopicName(event.getClass());
             ConsumerRecord<byte[], byte[]> record = factory.create(topic, event.getAggId(), event);
             testDriver.pipeInput(record);
         }

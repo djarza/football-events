@@ -1,7 +1,6 @@
 package org.djar.football.player.connect;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import java.util.Arrays;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.Consumed;
 import org.apache.kafka.streams.KeyValue;
@@ -21,7 +20,7 @@ public class PlayerEventProducer {
     private static final Logger logger = LoggerFactory.getLogger(PlayerEventProducer.class);
 
     private static final String CONNECT_PLAYERS_TOPIC = "fb-connect.public.players";
-    private static final String PLAYER_STARTED_CAREER_TOPIC = Topics.topicName(PlayerStartedCareer.class);
+    private static final String PLAYER_STARTED_CAREER_TOPIC = Topics.eventTopicName(PlayerStartedCareer.class);
 
     private final EventPublisher eventPublisher;
 

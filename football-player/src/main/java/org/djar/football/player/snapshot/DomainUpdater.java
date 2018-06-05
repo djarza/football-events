@@ -7,7 +7,7 @@ import org.apache.kafka.streams.Topology;
 import org.djar.football.event.PlayerStartedCareer;
 import org.djar.football.player.domain.Player;
 
-public class SnapshotBuilder {
+public class DomainUpdater {
 
     public static final String PLAYER_STORE = "player_store";
 

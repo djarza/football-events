@@ -27,7 +27,7 @@ public class EventPublisher {
     public Mono<Void> fire(Event event) {
         return Mono.create(sink -> {
             fillOut(event);
-            String topic = Topics.topicName(event.getClass());
+            String topic = Topics.eventTopicName(event.getClass());
             ProducerRecord<String, Event> record = new ProducerRecord<>(topic, 0, event.getMetadata().getTimestamp(),
                     event.getAggId(), event);
 

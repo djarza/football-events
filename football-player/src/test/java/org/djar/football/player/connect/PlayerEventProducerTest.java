@@ -40,7 +40,7 @@ public class PlayerEventProducerTest {
         String json = StreamUtils.copyToString(getClass().getResourceAsStream("player-inserted.json"),
                 Charset.defaultCharset());
         tester.sendStringMessage(1L, json, "fb-connect.public.players");
-        ProducerRecord<String, PlayerStartedCareer> event = tester.read(Topics.topicName(PlayerStartedCareer.class),
+        ProducerRecord<String, PlayerStartedCareer> event = tester.read(Topics.eventTopicName(PlayerStartedCareer.class),
                 new StringDeserializer(), new JsonPojoSerde<>(PlayerStartedCareer.class));
 
         assertThat(event.key()).isEqualTo("1");

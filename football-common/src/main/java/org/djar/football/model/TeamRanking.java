@@ -1,6 +1,6 @@
-package org.djar.football.query.model;
+package org.djar.football.model;
 
-public class Ranking {
+public class TeamRanking {
 
     private int matchesPlayed;
     private int won;
@@ -9,10 +9,10 @@ public class Ranking {
     private int goalsFor;
     private int goalsAgainst;
 
-    private Ranking() {
+    private TeamRanking() {
     }
 
-    public Ranking(int matchesPlayed, int won, int drawn, int lose, int goalsFor, int goalsAgainst) {
+    public TeamRanking(int matchesPlayed, int won, int drawn, int lose, int goalsFor, int goalsAgainst) {
         this.matchesPlayed = matchesPlayed;
         this.won = won;
         this.drawn = drawn;
@@ -21,7 +21,7 @@ public class Ranking {
         this.goalsAgainst = goalsAgainst;
     }
 
-    public Ranking aggregate(Ranking other) {
+    public TeamRanking aggregate(TeamRanking other) {
         matchesPlayed += other.matchesPlayed;
         won += other.won;
         drawn += other.drawn;

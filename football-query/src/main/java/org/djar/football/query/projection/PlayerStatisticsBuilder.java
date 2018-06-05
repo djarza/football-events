@@ -6,29 +6,32 @@ import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.Joined;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KTable;
+import org.apache.kafka.streams.kstream.Produced;
 import org.apache.kafka.streams.kstream.Serialized;
 import org.djar.football.Topics;
 import org.djar.football.event.CardReceived;
 import org.djar.football.event.GoalScored;
 import org.djar.football.event.PlayerStartedCareer;
-import org.djar.football.query.model.PlayerStatistic;
+import org.djar.football.model.PlayerStatistic;
 import org.djar.football.stream.JsonPojoSerde;
 import org.djar.football.stream.StreamsUtils;
 
 public class PlayerStatisticsBuilder {
 
-    public static final String PLAYER_STATISTICS_STORE = "player_statistics_store";
+    private static final String PLAYER_STARTED_TOPIC = Topics.eventTopicName(PlayerStartedCareer.class);
+    private static final String GOAL_SCORED_TOPIC = Topics.eventTopicName(GoalScored.class);
+    private static final String CARD_RECEIVED_TOPIC = Topics.eventTopicName(CardReceived.class);
 
-    private static final String PLAYER_STARTED_TOPIC = Topics.topicName(PlayerStartedCareer.class);
-    private static final String GOAL_SCORED_TOPIC = Topics.topicName(GoalScored.class);
-    private static final String CARD_RECEIVED_TOPIC = Topics.topicName(CardReceived.class);
+    public static final String PLAYER_STATISTIC_STORE = "player_statistic_store";
+
+    public static final String PLAYER_STATISTIC_TOPIC = Topics.viewTopicName(PlayerStatistic.class);
+
+    private final JsonPojoSerde<PlayerStartedCareer> playerSerde = new JsonPojoSerde<>(PlayerStartedCareer.class);
+    private final JsonPojoSerde<PlayerStatistic> statsSerde = new JsonPojoSerde<>(PlayerStatistic.class);
+    private final JsonPojoSerde<GoalScored> goalSerde = new JsonPojoSerde<>(GoalScored.class);
+    private final JsonPojoSerde<CardReceived> cardSerde = new JsonPojoSerde<>(CardReceived.class);
 
     public void build(StreamsBuilder builder) {
-        final JsonPojoSerde<PlayerStartedCareer> playerSerde = new JsonPojoSerde<>(PlayerStartedCareer.class);
-        final JsonPojoSerde<PlayerStatistic> statsSerde = new JsonPojoSerde<>(PlayerStatistic.class);
-        final JsonPojoSerde<GoalScored> goalSerde = new JsonPojoSerde<>(GoalScored.class);
-        final JsonPojoSerde<CardReceived> cardSerde = new JsonPojoSerde<>(CardReceived.class);
-
         KTable<String, PlayerStartedCareer> playerTable = builder
                 .table(PLAYER_STARTED_TOPIC, Consumed.with(Serdes.String(), playerSerde));
 
@@ -52,8 +55,9 @@ public class PlayerStatisticsBuilder {
                 .groupByKey(Serialized.with(Serdes.String(), statsSerde))
                 .reduce(PlayerStatistic::aggregate);
 
-        goalPlayerTable
-                .outerJoin(cardPlayerTable, (stat1, stat2) -> stat1 != null ? stat1.join(stat2) : stat2,
-                    StreamsUtils.materialized(PLAYER_STATISTICS_STORE, statsSerde));
+        KTable<String, PlayerStatistic> statTable = goalPlayerTable
+                .outerJoin(cardPlayerTable, (stat1, stat2) -> PlayerStatistic.join(stat1, stat2),
+                    StreamsUtils.materialized(PLAYER_STATISTIC_STORE, statsSerde));
+        statTable.toStream().to(PLAYER_STATISTIC_TOPIC, Produced.with(Serdes.String(), statsSerde));
     }
 }

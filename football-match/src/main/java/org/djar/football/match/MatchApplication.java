@@ -10,8 +10,8 @@ import org.apache.kafka.streams.Topology;
 import org.djar.football.event.Event;
 import org.djar.football.match.domain.Match;
 import org.djar.football.match.domain.Player;
-import org.djar.football.match.snapshot.SnapshotBuilder;
-import org.djar.football.repo.ReadOnlyKeyValueStoreRepository;
+import org.djar.football.match.snapshot.DomainUpdater;
+import org.djar.football.repo.StateStoreRepository;
 import org.djar.football.stream.EventPublisher;
 import org.djar.football.stream.JsonPojoSerde;
 import org.djar.football.stream.KafkaStreamsStarter;
@@ -21,7 +21,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.system.ApplicationPid;
 import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication
@@ -46,7 +45,7 @@ public class MatchApplication {
     @Bean
     public KafkaStreams kafkaStreams() {
         StreamsBuilder streamsBuilder = new StreamsBuilder();
-        SnapshotBuilder snapshotBuilder = new SnapshotBuilder();
+        DomainUpdater snapshotBuilder = new DomainUpdater();
         Topology topology = streamsBuilder.build();
         snapshotBuilder.init(topology);
         KafkaStreamsStarter starter = new KafkaStreamsStarter(kafkaBootstrapAddress, topology, APP_ID);
@@ -67,13 +66,13 @@ public class MatchApplication {
     }
 
     @Bean
-    public ReadOnlyKeyValueStoreRepository<Match> matchRepository() {
-        return new ReadOnlyKeyValueStoreRepository<>(kafkaStreams(), SnapshotBuilder.MATCH_STORE);
+    public StateStoreRepository<Match> matchRepository() {
+        return new StateStoreRepository<>(kafkaStreams(), DomainUpdater.MATCH_STORE);
     }
 
     @Bean
-    public ReadOnlyKeyValueStoreRepository<Player> playerRepository() {
-        return new ReadOnlyKeyValueStoreRepository<>(kafkaStreams(), SnapshotBuilder.PLAYER_STORE);
+    public StateStoreRepository<Player> playerRepository() {
+        return new StateStoreRepository<>(kafkaStreams(), DomainUpdater.PLAYER_STORE);
     }
 
     public static void main(String[] args) {

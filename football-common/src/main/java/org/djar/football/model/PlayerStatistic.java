@@ -1,4 +1,4 @@
-package org.djar.football.query.model;
+package org.djar.football.model;
 
 import java.util.Objects;
 import org.djar.football.event.CardReceived;
@@ -55,21 +55,24 @@ public class PlayerStatistic {
         return redCards;
     }
 
-    public PlayerStatistic join(PlayerStatistic other) {
-        if (other != null) {
-            assertPlayerId(other);
+    public static PlayerStatistic join(PlayerStatistic stat1, PlayerStatistic stat2) {
+        if (stat1 == null) {
+            return stat2;
+        }
+        if (stat2 != null) {
+            stat1.assertPlayerId(stat2);
 
-            if (this.yellowCards == 0) {
-                this.yellowCards = other.yellowCards;
+            if (stat1.yellowCards == 0) {
+                stat1.yellowCards = stat2.yellowCards;
             }
-            if (this.redCards == 0) {
-                this.redCards = other.redCards;
+            if (stat1.redCards == 0) {
+                stat1.redCards = stat2.redCards;
             }
-            if (this.goals == 0) {
-                this.goals = other.goals;
+            if (stat1.goals == 0) {
+                stat1.goals = stat2.goals;
             }
         }
-        return this;
+        return stat1;
     }
 
     public PlayerStatistic aggregate(PlayerStatistic other) {

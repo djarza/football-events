@@ -19,9 +19,9 @@ import org.djar.football.match.domain.Team;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SnapshotBuilder {
+public class DomainUpdater {
 
-    private static final Logger logger = LoggerFactory.getLogger(SnapshotBuilder.class);
+    private static final Logger logger = LoggerFactory.getLogger(DomainUpdater.class);
 
     public static final String MATCH_STORE = "match_store";
     public static final String GOAL_STORE = "goal_store";

@@ -22,13 +22,13 @@ public class KafkaStreamsStarter {
     private static final Logger logger = LoggerFactory.getLogger(KafkaStreamsStarter.class);
 
     // the number of football topics - docker-compose.yml/kafka/KAFKA_CREATE_TOPICS
-    private static final int FB_TOPIC_COUNT = 7;
+    private static final int FB_TOPIC_COUNT = 10;
 
     private final String kafkaBootstrapAddress;
     private final Topology topology;
     private final String applicationId;
 
-    private long kafkaTimeout = 60000;
+    private long kafkaTimeout = 120000;
     private long streamsStartupTimeout = 20000;
 
     public KafkaStreamsStarter(String kafkaBootstrapAddress, Topology topology, String applicationId) {

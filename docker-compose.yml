@@ -24,6 +24,9 @@ services:
         fb-event.card-received:1:1,
         fb-event.match-finished:1:1,
         fb-event.player-started-career:1:1,
+        fb-view.match-score:1:1,
+        fb-view.team-ranking:1:1,
+        fb-view.player-statistic:1:1,
         fb-connect.public.players:1:1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_BROKER_ID: 999
@@ -81,3 +84,12 @@ services:
       - kafka
     build: football-query/
     image: football-query:latest
+
+  football-ui:
+    container_name: football-ui
+    ports:
+      - 18080:18080
+    depends_on:
+      - kafka
+    build: football-ui/
+    image: football-ui:latest

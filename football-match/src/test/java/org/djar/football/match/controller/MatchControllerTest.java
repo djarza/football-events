@@ -15,7 +15,7 @@ import org.djar.football.event.MatchStarted;
 import org.djar.football.match.domain.Match;
 import org.djar.football.match.domain.Player;
 import org.djar.football.match.domain.Team;
-import org.djar.football.repo.ReadOnlyKeyValueStoreRepository;
+import org.djar.football.repo.StateStoreRepository;
 import org.djar.football.stream.EventPublisher;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,8 +25,8 @@ import reactor.core.publisher.Mono;
 public class MatchControllerTest {
 
     private MatchController controller;
-    private ReadOnlyKeyValueStoreRepository<Match> matchRepository;
-    private ReadOnlyKeyValueStoreRepository<Player> playerRepository;
+    private StateStoreRepository<Match> matchRepository;
+    private StateStoreRepository<Player> playerRepository;
     private EventPublisher publisher;
 
     @Before
@@ -34,8 +34,8 @@ public class MatchControllerTest {
         publisher = mock(EventPublisher.class);
         when(publisher.fire(any())).thenReturn(Mono.empty());
 
-        matchRepository = mock(ReadOnlyKeyValueStoreRepository.class);
-        playerRepository = mock(ReadOnlyKeyValueStoreRepository.class);
+        matchRepository = mock(StateStoreRepository.class);
+        playerRepository = mock(StateStoreRepository.class);
         Match match = new Match("match1", LocalDateTime.now(), new Team("t1"), new Team("t2"));
         match.setState(Match.State.STARTED);
         when(matchRepository.find("match1")).thenReturn(Optional.of(match));

@@ -1,4 +1,4 @@
-package org.djar.football.projection;
+package org.djar.football.query.projection;
 
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
@@ -6,9 +6,8 @@ import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
 import org.djar.football.event.GoalScored;
 import org.djar.football.event.MatchFinished;
 import org.djar.football.event.MatchStarted;
-import org.djar.football.query.model.MatchScore;
-import org.djar.football.query.model.Ranking;
-import org.djar.football.query.projection.MatchStatisticsBuilder;
+import org.djar.football.model.MatchScore;
+import org.djar.football.model.TeamRanking;
 import org.djar.football.test.StreamsTester;
 import org.junit.After;
 import org.junit.Before;
@@ -42,7 +41,7 @@ public class MatchStatisticsBuilderTest {
         tester.sendEvents(getClass().getResource("match-finished.json"), MatchFinished.class);
 
         ReadOnlyKeyValueStore<String, MatchScore> matchStore = tester.getStore(MATCH_SCORES_STORE);
-        ReadOnlyKeyValueStore<String, Ranking> rankingStore = tester.getStore(RANKING_STORE);
+        ReadOnlyKeyValueStore<String, TeamRanking> rankingStore = tester.getStore(RANKING_STORE);
 
         assertThat(tester.count(rankingStore)).isEqualTo(24);
         assertThat(tester.count(matchStore)).isEqualTo(22);
@@ -55,13 +54,13 @@ public class MatchStatisticsBuilderTest {
         assertThat(leedsUnitedVsPrestonNorthEnd.getHomeGoals()).isEqualTo(0);
         assertThat(leedsUnitedVsPrestonNorthEnd.getAwayGoals()).isEqualTo(0);
 
-        Ranking nottinghamForest = rankingStore.get("Nottingham Forest");
+        TeamRanking nottinghamForest = rankingStore.get("Nottingham Forest");
         assertThat(nottinghamForest.getMatchesPlayed()).isEqualTo(2);
         assertThat(nottinghamForest.getGoalsFor()).isEqualTo(5);
         assertThat(nottinghamForest.getGoalsAgainst()).isEqualTo(3);
         assertThat(nottinghamForest.getPoints()).isEqualTo(6);
 
-        Ranking burtonAlbion = rankingStore.get("Burton Albion");
+        TeamRanking burtonAlbion = rankingStore.get("Burton Albion");
         assertThat(burtonAlbion.getMatchesPlayed()).isEqualTo(2);
         assertThat(burtonAlbion.getGoalsFor()).isEqualTo(1);
         assertThat(burtonAlbion.getGoalsAgainst()).isEqualTo(5);

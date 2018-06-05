@@ -1,4 +1,4 @@
-package org.djar.football.query.model;
+package org.djar.football.model;
 
 import java.util.Objects;
 import org.djar.football.event.GoalScored;
@@ -49,20 +49,20 @@ public class MatchScore {
         return this;
     }
 
-    public Ranking homeRanking() {
+    public TeamRanking homeRanking() {
         return ranking(homeGoals, awayGoals);
     }
 
-    public Ranking awayRanking() {
+    public TeamRanking awayRanking() {
         return ranking(awayGoals, homeGoals);
     }
 
-    private Ranking ranking(int goalsFor, int goalsAgainst) {
+    private TeamRanking ranking(int goalsFor, int goalsAgainst) {
         int result = goalsFor - goalsAgainst;
         int won = result > 0 ? 1 : 0;
         int drawn = result == 0 ? 1 : 0;
         int lose = result < 0 ? 1 : 0;
-        return new Ranking(1, won, drawn, lose, goalsFor, goalsAgainst);
+        return new TeamRanking(1, won, drawn, lose, goalsFor, goalsAgainst);
     }
 
     public String getHomeClubId() {

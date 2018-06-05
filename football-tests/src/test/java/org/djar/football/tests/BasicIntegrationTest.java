@@ -32,6 +32,8 @@ import org.djar.football.event.MatchFinished;
 import org.djar.football.event.MatchScheduled;
 import org.djar.football.event.MatchStarted;
 import org.djar.football.event.PlayerStartedCareer;
+import org.djar.football.model.MatchScore;
+import org.djar.football.model.PlayerStatistic;
 import org.djar.football.tests.utils.DockerCompose;
 import org.djar.football.tests.utils.Errors;
 import org.junit.AfterClass;
@@ -76,6 +78,7 @@ public class BasicIntegrationTest {
             .addHealthCheck("http://football-match:18081/actuator/health", "\\{\"status\":\"UP\"\\}")
             .addHealthCheck("http://football-player:18082/actuator/health", "\\{\"status\":\"UP\"\\}")
             .addHealthCheck("http://football-query:18083/actuator/health", "\\{\"status\":\"UP\"\\}")
+            .addHealthCheck("http://football-ui:18080/actuator/health", "\\{\"status\":\"UP\"\\}")
             .addHealthCheck("http://connect:8083/connectors", "\\[.*\\]"); // match any response
 
         rest = new RestTemplate(new HttpComponentsClientHttpRequestFactory());
@@ -115,7 +118,7 @@ public class BasicIntegrationTest {
     @Test
     public void playAMatch() throws Exception {
         // no matches and no scores
-        get("http://football-query:18083/query/matchScores", 0);
+        get("http://football-ui:18080/ui/matchScores", MatchScore[].class, 0);
 
         // create another player
         postgres.execute("INSERT INTO players VALUES (103, 'Player Three') ON CONFLICT DO NOTHING");
@@ -157,11 +160,18 @@ public class BasicIntegrationTest {
         assertEvents(MatchFinished.class, "m1");
 
         // check the score
-        Map[] scoresResponse = get("http://football-query:18083/query/matchScores", 1);
-        assertThat(scoresResponse[0].get("homeClubId")).isEqualTo("Man Utd");
-        assertThat(scoresResponse[0].get("awayClubId")).isEqualTo("Liverpool");
-        assertThat(scoresResponse[0].get("homeGoals")).isEqualTo(2);
-        assertThat(scoresResponse[0].get("awayGoals")).isEqualTo(1);
+        MatchScore[] scores = get("http://football-ui:18080/ui/matchScores", MatchScore[].class, 1);
+        assertThat(scores[0].getHomeClubId()).isEqualTo("Man Utd");
+        assertThat(scores[0].getAwayClubId()).isEqualTo("Liverpool");
+        assertThat(scores[0].getHomeGoals()).isEqualTo(2);
+        assertThat(scores[0].getAwayGoals()).isEqualTo(1);
+
+//        // check players
+//        PlayerStatistic[] players = get("http://football-ui:18080/ui/players", PlayerStatistic[].class, 3);
+//        assertThat(players[0].getPlayerName()).isEqualTo("Player One");
+//        assertThat(players[0].getGoals()).isEqualTo("2");
+//        assertThat(players[0].getYellowCards()).isEqualTo(2);
+//        assertThat(players[0].getRedCards()).isEqualTo(1);
     }
 
     @Test
@@ -230,27 +240,27 @@ public class BasicIntegrationTest {
         }
     }
 
-    private static Map[] get(String url, int expectedResultCount) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
+    private static <T> T get(String url, Class<T> responseType, int expectedResultCount) throws IOException {
         long timeout = System.currentTimeMillis() + REST_RETRY_TIMEOUT;
-        Map[] result = null;
+        int resultSize = -1;
 
         try {
             do {
                 ResponseEntity<String> response = rest.getForEntity(url, String.class);
                 logger.trace(response.getBody());
-                result = mapper.readerFor(Map[].class).readValue(response.getBody());
+                T result = new ObjectMapper().readerFor(responseType).readValue(response.getBody());
+                int responseSize = ((Object[]) result).length;
 
-                if (result.length == expectedResultCount) {
+                if (responseSize == expectedResultCount) {
                     return result;
                 }
-                logger.trace(result.length + " items received, trying again...");
+                logger.trace(responseSize + " items received, trying again...");
                 Thread.sleep(500);
             } while (System.currentTimeMillis() > timeout);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupted();
         }
-        throw new AssertionError("Expected items: " + expectedResultCount + ", actual: " + result.length);
+        throw new AssertionError("Expected items: " + expectedResultCount + ", actual: " + resultSize);
     }
 
     private static <T extends Event> void assertEvents(Class<T> type, String... eventIds) {
@@ -260,7 +270,7 @@ public class BasicIntegrationTest {
         Collection<String> found = new ArrayList<>();
         Collection<String> redundant = new ArrayList<>();
 
-        String topic = Topics.topicName(type);
+        String topic = Topics.eventTopicName(type);
         eventConsumer.subscribe(Collections.singletonList(topic));
         long poolTimeout = EVENT_TIMEOUT;
 

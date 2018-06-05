@@ -28,7 +28,7 @@ public class SnapshotBuilderTest {
         tester = new StreamsTester(getClass().getName());
 
         Topology topology = new Topology();
-        new SnapshotBuilder().init(topology);
+        new DomainUpdater().init(topology);
 
         tester.setUp(topology);
     }
@@ -42,10 +42,10 @@ public class SnapshotBuilderTest {
         tester.sendEvents(getClass().getResource("card-received.json"), CardReceived.class);
         tester.sendEvents(getClass().getResource("match-finished.json"), MatchFinished.class);
 
-        ReadOnlyKeyValueStore<String, Match> matchStore = tester.getStore(SnapshotBuilder.MATCH_STORE);
-        ReadOnlyKeyValueStore<String, Goal> goalStore = tester.getStore(SnapshotBuilder.GOAL_STORE);
-        ReadOnlyKeyValueStore<String, Player> playerStore = tester.getStore(SnapshotBuilder.PLAYER_STORE);
-        ReadOnlyKeyValueStore<String, Card> cardStore = tester.getStore(SnapshotBuilder.CARD_STORE);
+        ReadOnlyKeyValueStore<String, Match> matchStore = tester.getStore(DomainUpdater.MATCH_STORE);
+        ReadOnlyKeyValueStore<String, Goal> goalStore = tester.getStore(DomainUpdater.GOAL_STORE);
+        ReadOnlyKeyValueStore<String, Player> playerStore = tester.getStore(DomainUpdater.PLAYER_STORE);
+        ReadOnlyKeyValueStore<String, Card> cardStore = tester.getStore(DomainUpdater.CARD_STORE);
 
         assertThat(tester.count(playerStore)).isEqualTo(4);
         assertThat(playerStore.get("3").getName()).isEqualTo("Lewis McGugan");

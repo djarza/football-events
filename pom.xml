@@ -15,6 +15,7 @@
         <module>football-match</module>
         <module>football-player</module>
         <module>football-query</module>
+        <module>football-ui</module>
     </modules>
 
     <parent>

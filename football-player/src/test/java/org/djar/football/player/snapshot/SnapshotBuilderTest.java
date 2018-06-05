@@ -20,7 +20,7 @@ public class SnapshotBuilderTest {
         tester = new StreamsTester(getClass().getName());
 
         Topology topology = new Topology();
-        new SnapshotBuilder().init(topology);
+        new DomainUpdater().init(topology);
 
         tester.setUp(topology);
     }
@@ -28,7 +28,7 @@ public class SnapshotBuilderTest {
     @Test
     public void test() throws Exception {
         tester.sendEvents(getClass().getResource("player-started-career.json"), PlayerStartedCareer.class);
-        ReadOnlyKeyValueStore<String, Player> playerStore = tester.getStore(SnapshotBuilder.PLAYER_STORE);
+        ReadOnlyKeyValueStore<String, Player> playerStore = tester.getStore(DomainUpdater.PLAYER_STORE);
 
         assertThat(tester.count(playerStore)).isEqualTo(4);
         assertThat(playerStore.get("2").getName()).isEqualTo("James Henry");

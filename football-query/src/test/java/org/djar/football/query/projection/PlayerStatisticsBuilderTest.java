@@ -1,20 +1,15 @@
-package org.djar.football.projection;
+package org.djar.football.query.projection;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.djar.football.query.projection.PlayerStatisticsBuilder.PLAYER_STATISTICS_STORE;
+import static org.djar.football.query.projection.PlayerStatisticsBuilder.PLAYER_STATISTIC_STORE;
 
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
 import org.djar.football.event.CardReceived;
 import org.djar.football.event.GoalScored;
-import org.djar.football.event.MatchScheduled;
-import org.djar.football.event.MatchStarted;
 import org.djar.football.event.PlayerStartedCareer;
-import org.djar.football.query.model.MatchScore;
-import org.djar.football.query.model.PlayerStatistic;
-import org.djar.football.query.model.Ranking;
-import org.djar.football.query.projection.PlayerStatisticsBuilder;
+import org.djar.football.model.PlayerStatistic;
 import org.djar.football.test.StreamsTester;
 import org.junit.After;
 import org.junit.Before;
@@ -44,7 +39,7 @@ public class PlayerStatisticsBuilderTest {
         tester.sendEvents(getClass().getResource("goal-scored.json"), GoalScored.class);
         tester.sendEvents(getClass().getResource("card-received.json"), CardReceived.class);
 
-        ReadOnlyKeyValueStore<String, PlayerStatistic> statsStore = tester.getStore(PLAYER_STATISTICS_STORE);
+        ReadOnlyKeyValueStore<String, PlayerStatistic> statsStore = tester.getStore(PLAYER_STATISTIC_STORE);
 
 //        assertThat(tester.goal(statsStore)).isEqualTo(44);
 

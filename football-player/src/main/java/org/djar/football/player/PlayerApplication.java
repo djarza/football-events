@@ -9,8 +9,7 @@ import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
 import org.djar.football.event.Event;
 import org.djar.football.player.connect.PlayerEventProducer;
-import org.djar.football.player.domain.Player;
-import org.djar.football.player.snapshot.SnapshotBuilder;
+import org.djar.football.player.snapshot.DomainUpdater;
 import org.djar.football.stream.EventPublisher;
 import org.djar.football.stream.JsonPojoSerde;
 import org.djar.football.stream.KafkaStreamsStarter;
@@ -20,7 +19,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.system.ApplicationPid;
 import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication
@@ -46,7 +44,7 @@ public class PlayerApplication {
     public KafkaStreams kafkaStreams() {
         StreamsBuilder streamsBuilder = new StreamsBuilder();
         Topology topology = streamsBuilder.build();
-        new SnapshotBuilder().init(topology);
+        new DomainUpdater().init(topology);
         new PlayerEventProducer(eventPublisher()).build(streamsBuilder);
         KafkaStreamsStarter starter = new KafkaStreamsStarter(kafkaBootstrapAddress, topology, APP_ID);
         starter.setKafkaTimeout(kafkaTimeout);

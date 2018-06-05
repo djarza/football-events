@@ -10,8 +10,7 @@ import org.djar.football.event.MatchScheduled;
 import org.djar.football.event.MatchStarted;
 import org.djar.football.match.domain.Match;
 import org.djar.football.match.domain.Player;
-import org.djar.football.match.snapshot.SnapshotBuilder;
-import org.djar.football.repo.ReadOnlyKeyValueStoreRepository;
+import org.djar.football.repo.StateStoreRepository;
 import org.djar.football.stream.EventPublisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,11 +32,11 @@ public class MatchController {
     private static final Logger logger = LoggerFactory.getLogger(MatchController.class);
 
     private final EventPublisher publisher;
-    private final ReadOnlyKeyValueStoreRepository<Match> matchRepository;
-    private final ReadOnlyKeyValueStoreRepository<Player> playerRepository;
+    private final StateStoreRepository<Match> matchRepository;
+    private final StateStoreRepository<Player> playerRepository;
 
-    public MatchController(EventPublisher publisher, ReadOnlyKeyValueStoreRepository<Match> matchRepository,
-            ReadOnlyKeyValueStoreRepository<Player> playerRepository) {
+    public MatchController(EventPublisher publisher, StateStoreRepository<Match> matchRepository,
+            StateStoreRepository<Player> playerRepository) {
         this.publisher = publisher;
         this.matchRepository = matchRepository;
         this.playerRepository = playerRepository;
@@ -48,7 +47,7 @@ public class MatchController {
     public Mono<Void> scheduleMatch(@RequestBody NewMatchRequest match) {
         MatchScheduled event = new MatchScheduled(match.getId(), match.getSeasonId(), match.getDate(),
                 match.getHomeClubId(), match.getAwayClubId());
-        logger.debug("Creating event {}", event);
+        logger.debug("Scheduling a match: {}", event);
         return publisher.fire(event);
     }
 
@@ -63,12 +62,13 @@ public class MatchController {
 
             if (newState == State.STARTED) {
                 event = new MatchStarted(matchId, match.getHomeTeam().getClubId(), match.getAwayTeam().getClubId());
+                logger.debug("Starting the match {}", event);
             } else if (newState == State.FINISHED) {
                 event = new MatchFinished(matchId, match.getHomeTeam().getClubId(), match.getAwayTeam().getClubId());
+                logger.debug("Finishing the match: {}", event);
             } else {
                 throw new UnsupportedOperationException("State " + newState + " not implemented yet");
             }
-            logger.debug("Creating event {}", event);
             sink.success(event);
         }).flatMap(publisher::fire);
     }
@@ -82,7 +82,7 @@ public class MatchController {
                     () -> new NotFoundException("Player not found", goalReq.getScorerId()));
             GoalScored event = new GoalScored(goalReq.getId(), matchId, goalReq.getMinute(), scorer.getId(),
                     match.getHomeTeam().getClubId());
-            logger.debug("Creating event {}", event);
+            logger.debug("Scoring a goal for the home team: {}", event);
             sink.success(event);
         }).flatMap(publisher::fire);
     }
@@ -96,7 +96,7 @@ public class MatchController {
                     () -> new NotFoundException("Player not found", goalReq.getScorerId()));
             GoalScored event = new GoalScored(goalReq.getId(), matchId, goalReq.getMinute(), scorer.getId(),
                     match.getAwayTeam().getClubId());
-            logger.debug("Creating event {}", event);
+            logger.debug("Scoring a goal for the away team: {}", event);
             sink.success(event);
         }).flatMap(publisher::fire);
     }
@@ -110,7 +110,7 @@ public class MatchController {
                     () -> new NotFoundException("Player not found", cardReq.getReceiverId()));
             CardReceived event = new CardReceived(cardReq.getId(), matchId, cardReq.getMinute(), receiver.getId(),
                     CardReceived.Type.valueOf(cardReq.getType()));
-            logger.debug("Creating event {}", event);
+            logger.debug("Showing a card {}", event);
             sink.success(event);
         }).flatMap(publisher::fire);
     }
@@ -120,7 +120,8 @@ public class MatchController {
                 () -> new InvalidRequestExeption("Match not found " + matchId));
 
         if (match.getState() != State.STARTED) {
-            throw new InvalidRequestExeption("Match state must be STARTED instead of " + match.getState());
+            throw new InvalidRequestExeption("Match state must be " + State.STARTED + " instead of " +
+                    match.getState());
         }
         return match;
     }

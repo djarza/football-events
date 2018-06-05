@@ -30,9 +30,13 @@ public class StreamsUtils {
             .withKeySerde(Serdes.String()).withValueSerde(serde);
     }
 
+    public static String storeName(Class stored) {
+        return stored.getSimpleName().replaceAll("(.)(\\p{Upper}+)", "$1_$2").toLowerCase();
+    }
+
     public static <E extends Event, D> void addProcessor(Topology topology, Class<E> eventType,
             EventProcessor<E, D> proc, String store) {
-        String topic = Topics.topicName(eventType);
+        String topic = Topics.eventTopicName(eventType);
         topology.addSource(eventType.getSimpleName() + "Source", Serdes.String().deserializer(),
                 new JsonPojoSerde<E>(eventType), topic)
                 .addProcessor(eventType.getSimpleName() + "Process",
