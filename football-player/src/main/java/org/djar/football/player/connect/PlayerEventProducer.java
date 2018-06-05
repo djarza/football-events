@@ -7,11 +7,11 @@ import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
-import org.djar.football.Topics;
-import org.djar.football.event.PlayerStartedCareer;
+import org.djar.football.model.event.PlayerStartedCareer;
 import org.djar.football.stream.EventPublisher;
 import org.djar.football.stream.JsonNodeSerde;
 import org.djar.football.stream.JsonPojoSerde;
+import org.djar.football.util.Topics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -1,4 +1,4 @@
-package org.djar.football.model;
+package org.djar.football.model.view;
 
 public class TeamRanking {
 

@@ -3,12 +3,12 @@ package org.djar.football.ui.projection;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.Consumed;
 import org.apache.kafka.streams.StreamsBuilder;
-import org.djar.football.Topics;
-import org.djar.football.model.MatchScore;
-import org.djar.football.model.PlayerStatistic;
-import org.djar.football.model.TeamRanking;
+import org.djar.football.model.view.MatchScore;
+import org.djar.football.model.view.PlayerStatistic;
+import org.djar.football.model.view.TeamRanking;
 import org.djar.football.stream.JsonPojoSerde;
 import org.djar.football.stream.StreamsUtils;
+import org.djar.football.util.Topics;
 
 public class ViewUpdater {
 

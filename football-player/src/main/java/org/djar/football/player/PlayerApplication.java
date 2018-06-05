@@ -7,7 +7,7 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
-import org.djar.football.event.Event;
+import org.djar.football.model.event.Event;
 import org.djar.football.player.connect.PlayerEventProducer;
 import org.djar.football.player.snapshot.DomainUpdater;
 import org.djar.football.stream.EventPublisher;

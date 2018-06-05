@@ -4,7 +4,7 @@ import static org.djar.football.stream.StreamsUtils.addProcessor;
 import static org.djar.football.stream.StreamsUtils.addStore;
 
 import org.apache.kafka.streams.Topology;
-import org.djar.football.event.PlayerStartedCareer;
+import org.djar.football.model.event.PlayerStartedCareer;
 import org.djar.football.player.domain.Player;
 
 public class DomainUpdater {

@@ -1,28 +1,20 @@
-package org.djar.football.event;
+package org.djar.football.model.event;
 
 import java.util.Objects;
 
-public class MatchStarted extends Event {
+public class MatchFinished extends Event {
 
     private String matchId;
     private String homeClubId;
     private String awayClubId;
 
-    private MatchStarted() {
+    private MatchFinished() {
     }
 
-    public MatchStarted(String matchId, String homeClubId, String awayClubId) {
+    public MatchFinished(String matchId, String homeClubId, String awayClubId) {
         this.matchId = Objects.requireNonNull(matchId);
         this.homeClubId = homeClubId;
         this.awayClubId = awayClubId;
-    }
-
-    public boolean scoredForHomeClub(GoalScored goal) {
-        return goal != null && homeClubId.equals(goal.getScoredFor());
-    }
-
-    public boolean scoredForAwayClub(GoalScored goal) {
-        return goal != null && awayClubId.equals(goal.getScoredFor());
     }
 
     @Override
@@ -44,6 +36,6 @@ public class MatchStarted extends Event {
 
     @Override
     public String toString() {
-        return matchId + "," + homeClubId + " vs" + awayClubId;
+        return matchId + "," + homeClubId + " vs " + awayClubId;
     }
 }

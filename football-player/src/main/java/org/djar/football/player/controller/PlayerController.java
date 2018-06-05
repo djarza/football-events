@@ -1,6 +1,6 @@
 package org.djar.football.player.controller;
 
-import org.djar.football.event.PlayerStartedCareer;
+import org.djar.football.model.event.PlayerStartedCareer;
 import org.djar.football.stream.EventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;

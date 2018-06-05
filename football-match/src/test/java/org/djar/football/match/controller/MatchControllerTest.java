@@ -8,10 +8,10 @@ import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
-import org.djar.football.event.CardReceived;
-import org.djar.football.event.GoalScored;
-import org.djar.football.event.MatchScheduled;
-import org.djar.football.event.MatchStarted;
+import org.djar.football.model.event.CardReceived;
+import org.djar.football.model.event.GoalScored;
+import org.djar.football.model.event.MatchScheduled;
+import org.djar.football.model.event.MatchStarted;
 import org.djar.football.match.domain.Match;
 import org.djar.football.match.domain.Player;
 import org.djar.football.match.domain.Team;

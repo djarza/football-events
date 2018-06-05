@@ -14,17 +14,17 @@ import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KTable;
 import org.apache.kafka.streams.kstream.Produced;
 import org.apache.kafka.streams.kstream.Serialized;
-import org.djar.football.Topics;
-import org.djar.football.event.CardReceived;
-import org.djar.football.event.GoalScored;
-import org.djar.football.event.MatchFinished;
-import org.djar.football.event.MatchStarted;
-import org.djar.football.event.PlayerStartedCareer;
-import org.djar.football.model.MatchScore;
-import org.djar.football.model.PlayerStatistic;
-import org.djar.football.model.TeamRanking;
+import org.djar.football.model.event.CardReceived;
+import org.djar.football.model.event.GoalScored;
+import org.djar.football.model.event.MatchFinished;
+import org.djar.football.model.event.MatchStarted;
+import org.djar.football.model.event.PlayerStartedCareer;
+import org.djar.football.model.view.MatchScore;
+import org.djar.football.model.view.PlayerStatistic;
+import org.djar.football.model.view.TeamRanking;
 import org.djar.football.stream.JsonPojoSerde;
 import org.djar.football.stream.StreamsUtils;
+import org.djar.football.util.Topics;
 
 public class StatisticsBuilder {
 

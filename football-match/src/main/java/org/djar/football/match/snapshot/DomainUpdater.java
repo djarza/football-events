@@ -5,17 +5,17 @@ import static org.djar.football.stream.StreamsUtils.addStore;
 
 import java.util.Objects;
 import org.apache.kafka.streams.Topology;
-import org.djar.football.event.CardReceived;
-import org.djar.football.event.GoalScored;
-import org.djar.football.event.MatchFinished;
-import org.djar.football.event.MatchScheduled;
-import org.djar.football.event.MatchStarted;
-import org.djar.football.event.PlayerStartedCareer;
 import org.djar.football.match.domain.Card;
 import org.djar.football.match.domain.Goal;
 import org.djar.football.match.domain.Match;
 import org.djar.football.match.domain.Player;
 import org.djar.football.match.domain.Team;
+import org.djar.football.model.event.CardReceived;
+import org.djar.football.model.event.GoalScored;
+import org.djar.football.model.event.MatchFinished;
+import org.djar.football.model.event.MatchScheduled;
+import org.djar.football.model.event.MatchStarted;
+import org.djar.football.model.event.PlayerStartedCareer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

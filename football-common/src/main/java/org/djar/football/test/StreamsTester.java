@@ -27,9 +27,9 @@ import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
 import org.apache.kafka.streams.test.ConsumerRecordFactory;
-import org.djar.football.Topics;
-import org.djar.football.event.Event;
+import org.djar.football.model.event.Event;
 import org.djar.football.stream.JsonPojoSerde;
+import org.djar.football.util.Topics;
 import org.springframework.util.FileSystemUtils;
 
 public class StreamsTester {

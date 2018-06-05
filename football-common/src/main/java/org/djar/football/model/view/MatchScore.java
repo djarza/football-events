@@ -1,8 +1,8 @@
-package org.djar.football.model;
+package org.djar.football.model.view;
 
 import java.util.Objects;
-import org.djar.football.event.GoalScored;
-import org.djar.football.event.MatchStarted;
+import org.djar.football.model.event.GoalScored;
+import org.djar.football.model.event.MatchStarted;
 
 public class MatchScore {
 

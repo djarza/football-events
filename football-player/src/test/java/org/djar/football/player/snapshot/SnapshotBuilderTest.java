@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
-import org.djar.football.event.PlayerStartedCareer;
+import org.djar.football.model.event.PlayerStartedCareer;
 import org.djar.football.player.domain.Player;
 import org.djar.football.test.StreamsTester;
 import org.junit.After;

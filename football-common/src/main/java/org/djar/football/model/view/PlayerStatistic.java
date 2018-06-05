@@ -1,9 +1,9 @@
-package org.djar.football.model;
+package org.djar.football.model.view;
 
 import java.util.Objects;
-import org.djar.football.event.CardReceived;
-import org.djar.football.event.GoalScored;
-import org.djar.football.event.PlayerStartedCareer;
+import org.djar.football.model.event.CardReceived;
+import org.djar.football.model.event.GoalScored;
+import org.djar.football.model.event.PlayerStartedCareer;
 
 public class PlayerStatistic {
 

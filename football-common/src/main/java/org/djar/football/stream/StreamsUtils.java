@@ -12,8 +12,8 @@ import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.kafka.streams.state.StoreBuilder;
 import org.apache.kafka.streams.state.Stores;
-import org.djar.football.Topics;
-import org.djar.football.event.Event;
+import org.djar.football.model.event.Event;
+import org.djar.football.util.Topics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

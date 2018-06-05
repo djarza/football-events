@@ -1,18 +1,23 @@
-package org.djar.football.event;
+package org.djar.football.model.event;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
 
-public class MatchFinished extends Event {
+public class MatchScheduled extends Event {
 
     private String matchId;
+    private String seasonId;
+    private LocalDateTime date;
     private String homeClubId;
     private String awayClubId;
 
-    private MatchFinished() {
+    private MatchScheduled() {
     }
 
-    public MatchFinished(String matchId, String homeClubId, String awayClubId) {
+    public MatchScheduled(String matchId, String seasonId, LocalDateTime date, String homeClubId, String awayClubId) {
         this.matchId = Objects.requireNonNull(matchId);
+        this.seasonId = seasonId;
+        this.date = date;
         this.homeClubId = homeClubId;
         this.awayClubId = awayClubId;
     }
@@ -26,6 +31,14 @@ public class MatchFinished extends Event {
         return matchId;
     }
 
+    public String getSeasonId() {
+        return seasonId;
+    }
+
+    public LocalDateTime getDate() {
+        return date;
+    }
+
     public String getHomeClubId() {
         return homeClubId;
     }
@@ -36,6 +49,6 @@ public class MatchFinished extends Event {
 
     @Override
     public String toString() {
-        return matchId + "," + homeClubId + " vs " + awayClubId;
+        return matchId + "," + seasonId + "," + homeClubId + " vs " + awayClubId;
     }
 }

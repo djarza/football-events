@@ -1,8 +1,8 @@
 package org.djar.football.ui.controller;
 
-import org.djar.football.model.MatchScore;
-import org.djar.football.model.PlayerStatistic;
-import org.djar.football.model.TeamRanking;
+import org.djar.football.model.view.MatchScore;
+import org.djar.football.model.view.PlayerStatistic;
+import org.djar.football.model.view.TeamRanking;
 import org.djar.football.repo.StateStoreRepository;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;

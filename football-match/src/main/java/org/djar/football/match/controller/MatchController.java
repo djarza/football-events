@@ -2,14 +2,14 @@ package org.djar.football.match.controller;
 
 import static org.djar.football.match.domain.Match.State;
 
-import org.djar.football.event.CardReceived;
-import org.djar.football.event.Event;
-import org.djar.football.event.GoalScored;
-import org.djar.football.event.MatchFinished;
-import org.djar.football.event.MatchScheduled;
-import org.djar.football.event.MatchStarted;
 import org.djar.football.match.domain.Match;
 import org.djar.football.match.domain.Player;
+import org.djar.football.model.event.CardReceived;
+import org.djar.football.model.event.Event;
+import org.djar.football.model.event.GoalScored;
+import org.djar.football.model.event.MatchFinished;
+import org.djar.football.model.event.MatchScheduled;
+import org.djar.football.model.event.MatchStarted;
 import org.djar.football.repo.StateStoreRepository;
 import org.djar.football.stream.EventPublisher;
 import org.slf4j.Logger;

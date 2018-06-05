@@ -1,6 +1,6 @@
-package org.djar.football;
+package org.djar.football.util;
 
-import org.djar.football.event.Event;
+import org.djar.football.model.event.Event;
 
 public class Topics {
 

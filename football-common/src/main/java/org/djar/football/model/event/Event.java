@@ -1,4 +1,4 @@
-package org.djar.football.event;
+package org.djar.football.model.event;
 
 public abstract class Event {
 
