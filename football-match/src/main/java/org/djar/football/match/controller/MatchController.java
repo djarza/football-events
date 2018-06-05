@@ -120,8 +120,8 @@ public class MatchController {
                 () -> new InvalidRequestExeption("Match not found " + matchId));
 
         if (match.getState() != State.STARTED) {
-            throw new InvalidRequestExeption("Match state must be " + State.STARTED + " instead of " +
-                    match.getState());
+            throw new InvalidRequestExeption("Match state must be " + State.STARTED + " instead of "
+                    + match.getState());
         }
         return match;
     }

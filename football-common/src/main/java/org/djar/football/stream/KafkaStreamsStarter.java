@@ -105,11 +105,11 @@ public class KafkaStreamsStarter {
     private void checkTimeout(String kafkaBootstrapAddress, long timeout, Set<String> topicNames) {
         if (System.currentTimeMillis() > timeout) {
             if (topicNames == null || topicNames.isEmpty()) {
-                throw new RuntimeException("Timeout waiting for Kafka. Kafka is not available " +
-                        kafkaBootstrapAddress);
+                throw new RuntimeException("Timeout waiting for Kafka. Kafka is not available "
+                        + kafkaBootstrapAddress);
             }
-            throw new RuntimeException("Timeout waiting for Kafka. " +
-                    "Some '" + TOPIC_NAME_PREFIX + "*' topics are missing, found only: " + topicNames);
+            throw new RuntimeException("Timeout waiting for Kafka. "
+                    + "Some '" + TOPIC_NAME_PREFIX + "*' topics are missing, found only: " + topicNames);
         }
     }
 

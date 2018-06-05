@@ -77,7 +77,7 @@ public class BasicIntegrationTest {
         dockerCompose = new DockerCompose()
             .addHealthCheck("http://football-match:18081/actuator/health", "\\{\"status\":\"UP\"\\}")
             .addHealthCheck("http://football-player:18082/actuator/health", "\\{\"status\":\"UP\"\\}")
-            .addHealthCheck("http://football-query:18083/actuator/health", "\\{\"status\":\"UP\"\\}")
+            .addHealthCheck("http://football-view:18083/actuator/health", "\\{\"status\":\"UP\"\\}")
             .addHealthCheck("http://football-ui:18080/actuator/health", "\\{\"status\":\"UP\"\\}")
             .addHealthCheck("http://connect:8083/connectors", "\\[.*\\]"); // match any response
 
@@ -166,12 +166,8 @@ public class BasicIntegrationTest {
         assertThat(scores[0].getHomeGoals()).isEqualTo(2);
         assertThat(scores[0].getAwayGoals()).isEqualTo(1);
 
-//        // check players
-//        PlayerStatistic[] players = get("http://football-ui:18080/ui/players", PlayerStatistic[].class, 3);
-//        assertThat(players[0].getPlayerName()).isEqualTo("Player One");
-//        assertThat(players[0].getGoals()).isEqualTo("2");
-//        assertThat(players[0].getYellowCards()).isEqualTo(2);
-//        assertThat(players[0].getRedCards()).isEqualTo(1);
+        // check players
+        get("http://football-ui:18080/ui/players", PlayerStatistic[].class, 3);
     }
 
     @Test

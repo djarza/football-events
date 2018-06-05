@@ -1,12 +1,11 @@
-package org.djar.football.query;
+package org.djar.football.view;
 
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
-import org.djar.football.query.projection.MatchStatisticsBuilder;
-import org.djar.football.query.projection.PlayerStatisticsBuilder;
 import org.djar.football.stream.KafkaStreamsStarter;
 import org.djar.football.util.MicroserviceUtils;
+import org.djar.football.view.projection.StatisticsBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,11 +14,11 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication
-public class QueryApplication {
+public class ViewApplication {
 
-    private static final Logger logger = LoggerFactory.getLogger(QueryApplication.class);
+    private static final Logger logger = LoggerFactory.getLogger(ViewApplication.class);
 
-    private static final String APP_ID = MicroserviceUtils.applicationId(QueryApplication.class);
+    private static final String APP_ID = MicroserviceUtils.applicationId(ViewApplication.class);
 
     @Value("${kafka.bootstrapAddress}")
     private String kafkaBootstrapAddress;
@@ -33,8 +32,7 @@ public class QueryApplication {
     @Bean
     public KafkaStreams kafkaStreams() {
         StreamsBuilder streamsBuilder = new StreamsBuilder();
-        new MatchStatisticsBuilder().build(streamsBuilder);
-//        new PlayerStatisticsBuilder().build(streamsBuilder);
+        new StatisticsBuilder(streamsBuilder).build();
         Topology topology = streamsBuilder.build();
         KafkaStreamsStarter starter = new KafkaStreamsStarter(kafkaBootstrapAddress, topology, APP_ID);
         starter.setKafkaTimeout(kafkaTimeout);
@@ -44,6 +42,6 @@ public class QueryApplication {
 
     public static void main(String[] args) {
         logger.info("Application ID: {}", APP_ID);
-        SpringApplication.run(QueryApplication.class, args);
+        SpringApplication.run(ViewApplication.class, args);
     }
 }

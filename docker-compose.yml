@@ -76,14 +76,14 @@ services:
     build: football-player/
     image: football-player:latest
 
-  football-query:
-    container_name: football-query
+  football-view:
+    container_name: football-view
     ports:
       - 18083:18083
     depends_on:
       - kafka
-    build: football-query/
-    image: football-query:latest
+    build: football-view/
+    image: football-view:latest
 
   football-ui:
     container_name: football-ui
