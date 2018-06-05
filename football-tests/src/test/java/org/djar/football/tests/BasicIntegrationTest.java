@@ -244,12 +244,12 @@ public class BasicIntegrationTest {
                 ResponseEntity<String> response = rest.getForEntity(url, String.class);
                 logger.trace(response.getBody());
                 T result = new ObjectMapper().readerFor(responseType).readValue(response.getBody());
-                int responseSize = ((Object[]) result).length;
+                resultSize = ((Object[]) result).length;
 
-                if (responseSize == expectedResultCount) {
+                if (resultSize == expectedResultCount) {
                     return result;
                 }
-                logger.trace(responseSize + " items received, trying again...");
+                logger.trace(resultSize + " items received, trying again...");
                 Thread.sleep(500);
             } while (System.currentTimeMillis() > timeout);
         } catch (InterruptedException e) {
