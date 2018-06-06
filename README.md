@@ -20,13 +20,13 @@ Services:
 - __postgres__ - in the role of an external data source
 - __[football-match](football-match/)__ - transforms REST requests into [Events](football-common/src/main/java/org/djar/football/model/event/)
 - __connect__ - Kafka Connect service with [Debezium PostgreSQL connector](http://debezium.io/docs/connectors/postgresql/); monitors changes in the database
-- __[football-player](football-player/)__ - receives notifications from __connect__ service and creates only a single Event [PlayerStartedCareer](football-common/src/main/java/org/djar/football/model/event/PlayerStartedCareer.java) using [Processor API](https://kafka.apache.org/11/documentation/streams/developer-guide/processor-api.html) ([implementation](football-player/src/main/java/org/djar/football/player/snapshot/DomainUpdater.java))
-- __[football-view](football-view/)__ - builds views from Events [Kafka Streams DSL](https://kafka.apache.org/11/documentation/streams/developer-guide/dsl-api.html) ([see](#events-and-streams))
-- __[football-ui](football-ui/)__ - saves the statistics into materialized views (local state stores) and exposes via REST API ([statistics classes](football-common/src/main/java/org/djar/football/model/view/))
+- __[football-player](football-player/)__ - receives notifications from __connect__ service and creates only a single Event [PlayerStartedCareer](football-common/src/main/java/org/djar/football/model/event/PlayerStartedCareer.java) using [Processor API](https://kafka.apache.org/11/documentation/streams/developer-guide/processor-api.html) (see the [code](football-player/src/main/java/org/djar/football/player/snapshot/DomainUpdater.java))
+- __[football-view](football-view/)__ - builds views from Events [Kafka Streams DSL](https://kafka.apache.org/11/documentation/streams/developer-guide/dsl-api.html) (see [below](#events-and-streams))
+- __[football-ui](football-ui/)__ - saves the statistics into materialized views (local state stores) and exposes via [REST API](football-ui/src/main/java/org/djar/football/ui/controller/StatisticsController.java)
 
 Additional modules:
 - __[football-common](football-common/)__ - contains some code that is shared among microservices (obviously it's not a good practice for production), especially:
-    - [Events](football-common/src/main/java/org/djar/football/model/event/) - __football-match(football-match/)__, __[football-player](football-player/)__, __[football_view](football-view/)__
+    - [Events](football-common/src/main/java/org/djar/football/model/event/) - __[football-match](football-match/)__, __[football-player](football-player/)__, __[football_view](football-view/)__
     - [statistics](football-common/src/main/java/org/djar/football/model/view/) - __[football-view](football-view/)__, __[football-ui](football-ui/)__
 - __[football-tests](football-tests/)__ - integration tests
 
@@ -44,7 +44,7 @@ Each [Event](football-common/src/main/java/org/djar/football/model/event/) repre
 | MatchFinished       | match id                                               |
 | PlayerStartedCareer | palyer id, name                                        |
 
-These Events are the source for stream processing. In order to determine the result of a match, you must join MatchStarted and GoalScored streams and then count the goals ([see the code](football-view/src/main/java/org/djar/football/view/projection/StatisticsBuilder.java)).
+These Events are the source for stream processing. In order to determine the result of a match, you must join MatchStarted and GoalScored streams and then count the goals (see the [code](football-view/src/main/java/org/djar/football/view/projection/StatisticsBuilder.java)).
 
 
 ## Kafka topics
