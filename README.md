@@ -16,10 +16,11 @@ So what is this application doing? It generates a simple football statistics: ma
 ![architecture](docs/architecture.png)
 
 Services:
-- __kafka__ & __zookeeper__
+- __kafka__
+- __zookeeper__
 - __postgres__ - in the role of an external data source
 - __[football-match](football-match/)__ - transforms REST requests into [Events](football-common/src/main/java/org/djar/football/model/event/)
-- __connect__ - Kafka Connect service with [Debezium PostgreSQL connector](http://debezium.io/docs/connectors/postgresql/); monitors changes in the database
+- __connect__ - Kafka Connect with [Debezium PostgreSQL connector](http://debezium.io/docs/connectors/postgresql/) monitors changes in the database
 - __[football-player](football-player/)__ - receives notifications from __connect__ service and creates only a single Event [PlayerStartedCareer](football-common/src/main/java/org/djar/football/model/event/PlayerStartedCareer.java) using [Processor API](https://kafka.apache.org/11/documentation/streams/developer-guide/processor-api.html) (see the [code](football-player/src/main/java/org/djar/football/player/snapshot/DomainUpdater.java))
 - __[football-view](football-view/)__ - builds views from Events [Kafka Streams DSL](https://kafka.apache.org/11/documentation/streams/developer-guide/dsl-api.html) (see [below](#events-and-streams))
 - __[football-ui](football-ui/)__ - saves the statistics into materialized views (local state stores) and exposes via [REST API](football-ui/src/main/java/org/djar/football/ui/controller/StatisticsController.java)
@@ -55,8 +56,8 @@ These Events are the source for stream processing. In order to determine the res
 ## REST endpoints
 
 REST controllers:
-- [Query interface](football-ui/src/main/java/org/djar/football/ui/controller/StatisticsController.java)
-- [Command interface](football-match/src/main/java/org/djar/football/match/controller/MatchController.java)
+- [Query interface](football-ui/src/main/java/org/djar/football/ui/controller/StatisticsController.java) in __football-ui__
+- [Command interface](football-match/src/main/java/org/djar/football/match/controller/MatchController.java) in __football-match__
 
 
 ## How to run
