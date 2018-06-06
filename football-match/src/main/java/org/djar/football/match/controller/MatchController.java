@@ -64,7 +64,7 @@ public class MatchController {
                 event = new MatchStarted(matchId, match.getHomeTeam().getClubId(), match.getAwayTeam().getClubId());
                 logger.debug("Starting the match {}", event);
             } else if (newState == State.FINISHED) {
-                event = new MatchFinished(matchId, match.getHomeTeam().getClubId(), match.getAwayTeam().getClubId());
+                event = new MatchFinished(matchId);
                 logger.debug("Finishing the match: {}", event);
             } else {
                 throw new UnsupportedOperationException("State " + newState + " not implemented yet");

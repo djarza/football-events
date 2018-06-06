@@ -6,7 +6,7 @@ import java.util.Objects;
 public class MatchScheduled extends Event {
 
     private String matchId;
-    private String seasonId;
+    private String seasonId; // unused
     private LocalDateTime date;
     private String homeClubId;
     private String awayClubId;

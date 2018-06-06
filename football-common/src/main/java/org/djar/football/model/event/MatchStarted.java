@@ -17,14 +17,6 @@ public class MatchStarted extends Event {
         this.awayClubId = awayClubId;
     }
 
-    public boolean scoredForHomeClub(GoalScored goal) {
-        return goal != null && homeClubId.equals(goal.getScoredFor());
-    }
-
-    public boolean scoredForAwayClub(GoalScored goal) {
-        return goal != null && awayClubId.equals(goal.getScoredFor());
-    }
-
     @Override
     public String getAggId() {
         return matchId;

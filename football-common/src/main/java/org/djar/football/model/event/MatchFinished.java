@@ -5,16 +5,12 @@ import java.util.Objects;
 public class MatchFinished extends Event {
 
     private String matchId;
-    private String homeClubId;
-    private String awayClubId;
 
     private MatchFinished() {
     }
 
-    public MatchFinished(String matchId, String homeClubId, String awayClubId) {
+    public MatchFinished(String matchId) {
         this.matchId = Objects.requireNonNull(matchId);
-        this.homeClubId = homeClubId;
-        this.awayClubId = awayClubId;
     }
 
     @Override
@@ -26,16 +22,8 @@ public class MatchFinished extends Event {
         return matchId;
     }
 
-    public String getHomeClubId() {
-        return homeClubId;
-    }
-
-    public String getAwayClubId() {
-        return awayClubId;
-    }
-
     @Override
     public String toString() {
-        return matchId + "," + homeClubId + " vs " + awayClubId;
+        return matchId;
     }
 }
