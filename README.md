@@ -16,25 +16,25 @@ So what is this application doing? It generates a simple football statistics: ma
 ![architecture](docs/architecture.png)
 
 Services:
-- __kafka__
-- __zookeeper__
-- __postgres__ - in the role of an external data source
-- __[football-match](football-match/)__ - transforms REST requests into [Events](football-common/src/main/java/org/djar/football/model/event/)
-- __connect__ - Kafka Connect with [Debezium PostgreSQL connector](http://debezium.io/docs/connectors/postgresql/) monitors changes in the database
-- __[football-player](football-player/)__ - receives notifications from __connect__ service and creates only a single Event [PlayerStartedCareer](football-common/src/main/java/org/djar/football/model/event/PlayerStartedCareer.java) using [Processor API](https://kafka.apache.org/11/documentation/streams/developer-guide/processor-api.html) (see the [code](football-player/src/main/java/org/djar/football/player/snapshot/DomainUpdater.java))
-- __[football-view](football-view/)__ - builds views from Events [Kafka Streams DSL](https://kafka.apache.org/11/documentation/streams/developer-guide/dsl-api.html) (see [below](#events-and-streams))
-- __[football-ui](football-ui/)__ - saves the statistics into materialized views (local state stores) and exposes via [REST API](football-ui/src/main/java/org/djar/football/ui/controller/StatisticsController.java)
+- __kafka__,
+- __zookeeper__,
+- __postgres__ - in the role of an external data source,
+- __[football-match](football-match/)__ - REST requests transformation into [events](football-common/src/main/java/org/djar/football/model/event/), input validation with the [domain model](https://github.com/djarza/football-events/tree/master/football-match/src/main/java/org/djar/football/match/domain),
+- __connect__ - Kafka Connect with [Debezium PostgreSQL connector](http://debezium.io/docs/connectors/postgresql/), database changes detection,
+- __[football-player](football-player/)__ is receiving notifications from __connect__ service and creating only a single [PlayerStartedCareer event](football-common/src/main/java/org/djar/football/model/event/PlayerStartedCareer.java) using [Processor API](https://kafka.apache.org/11/documentation/streams/developer-guide/processor-api.html) (see the [code](football-player/src/main/java/org/djar/football/player/snapshot/DomainUpdater.java)),
+- __[football-view](football-view/)__ - builds the statistics from the events using [Kafka Streams DSL](https://kafka.apache.org/11/documentation/streams/developer-guide/dsl-api.html), it's the main place where streams are created and processed (see [below](#events-and-streams)),
+- __[football-ui](football-ui/)__ - saves the statistics into materialized views (local state stores) and exposes via [REST API](football-ui/src/main/java/org/djar/football/ui/controller/StatisticsController.java).
 
 Additional modules:
 - __[football-common](football-common/)__ - contains some code that is shared among microservices (obviously it's not a good practice for production), especially:
-    - [Events](football-common/src/main/java/org/djar/football/model/event/) - __[football-match](football-match/)__, __[football-player](football-player/)__, __[football_view](football-view/)__
-    - [statistics](football-common/src/main/java/org/djar/football/model/view/) - __[football-view](football-view/)__, __[football-ui](football-ui/)__
-- __[football-tests](football-tests/)__ - integration tests
+    - [events](football-common/src/main/java/org/djar/football/model/event/) are used by __[football-match](football-match/)__, __[football-player](football-player/)__ and __[football_view](football-view/)__,
+    - [statistics](football-common/src/main/java/org/djar/football/model/view/) - __[football-view](football-view/)__, __[football-ui](football-ui/)__,
+- __[football-tests](football-tests/)__ - integration tests.
 
 
 ## Events and streams
 
-Each [Event](football-common/src/main/java/org/djar/football/model/event/) represents a state change that occurred to the system.
+Each [event](football-common/src/main/java/org/djar/football/model/event/) represents a state change that occurred to the system.
 
 | Event               | Fields                                                 |
 | ------------------- | ------------------------------------------------------ |
@@ -45,7 +45,7 @@ Each [Event](football-common/src/main/java/org/djar/football/model/event/) repre
 | MatchFinished       | match id                                               |
 | PlayerStartedCareer | palyer id, name                                        |
 
-These Events are the source for stream processing. In order to determine the result of a match, you must join MatchStarted and GoalScored streams and then count the goals (see the [code](football-view/src/main/java/org/djar/football/view/projection/StatisticsBuilder.java)).
+These events are the source for stream processing. For example, in order to determine the result of a match, you must join MatchStarted and GoalScored streams and then count the goals (see the [code](football-view/src/main/java/org/djar/football/view/projection/StatisticsBuilder.java)).
 
 
 ## Kafka topics
@@ -55,9 +55,9 @@ These Events are the source for stream processing. In order to determine the res
 
 ## REST endpoints
 
-REST controllers:
-- [Query interface](football-ui/src/main/java/org/djar/football/ui/controller/StatisticsController.java) in __football-ui__
-- [Command interface](football-match/src/main/java/org/djar/football/match/controller/MatchController.java) in __football-match__
+There are only two REST endpoits and both of them are accessed from the outside of the system:
+- [Query interface](football-ui/src/main/java/org/djar/football/ui/controller/StatisticsController.java) in __football-ui__,
+- [Command interface](football-match/src/main/java/org/djar/football/match/controller/MatchController.java) in __football-match__.
 
 
 ## How to run
@@ -76,4 +76,4 @@ REST controllers:
     ```
     docker-compose up -d
     ```
-- So far, there is no test data or data generator besides a simple [integration test](football-tests/)
+- So far, there is no test data or data generator besides a simple [integration test](football-tests/).
