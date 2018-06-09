@@ -1,21 +1,19 @@
 # Event-Driven microservices with Kafka Streams
 
-Event-Driven microservices codebase applying the idea of [stateful streams processing](https://docs.confluent.io/current/streams/concepts.html#stateful-stream-processing) with [Kafka](https://kafka.apache.org/) and [Kafka Streams](https://kafka.apache.org/documentation/streams/). These blog posts are a great introduction to that concept:
+A skeleton example of how to use [Kafka Streams](https://kafka.apache.org/documentation/streams/) with Event-Driven microservices. This is an application that generates a simple football statistics like match scores, team and player rankings. It should be a little more comprehensible than a typical code examples based on orders, payments etc.
+
+![architecture](docs/architecture.png)
+
+You can think of this application as a supplement to the basic code examples of Kafka Streams. Kafka Streams is used here for many purposes like aggregation, building materialized views, persisting the domain model or just exposing the output of services. Furthermore, there is no traditional database, local state stores instead (PostgreSQL plays a role of legacy system only).
+
+This codebase is trying to apply the idea of [stateful streams processing](https://docs.confluent.io/current/streams/concepts.html#stateful-stream-processing) with [Kafka](https://kafka.apache.org/) and [Kafka Streams](https://kafka.apache.org/documentation/streams/). These blog posts are a great introduction to that concept:
 - [The Data Dichotomy: Rethinking the Way We Treat Data and Services](https://www.confluent.io/blog/data-dichotomy-rethinking-the-way-we-treat-data-and-services/)
 - [Build Services on a Backbone of Events](https://www.confluent.io/blog/build-services-backbone-events/)
 - [Using Apache Kafka as a Scalable, Event-Driven Backbone for Service Architectures](https://www.confluent.io/blog/apache-kafka-for-service-architectures/)
 - [Event sourcing using Kafka](https://blog.softwaremill.com/event-sourcing-using-kafka-53dfd72ad45d)
 
-You can think of this project as a more comprehensive supplement to the basic code examples of Kafka Streams. Kafka Streams is used here for many purposes like aggregation, building materialized views, persisting the domain model or just exposing the output of services. Furthermore, there is no traditional database, local state stores instead (PostgreSQL plays a role of legacy system only).
+## Services
 
-So what is this application doing? It generates a simple football statistics: match scores, team rankings (matches played, won, lost, drawn, points...) and player statistics (goals scored, yellow and red cards). It should be a little more comprehensible than a typical code examples based on orders, payments etc. 
-
-
-## Architecture
-
-![architecture](docs/architecture.png)
-
-Services:
 - __kafka__,
 - __zookeeper__,
 - __postgres__ - in the role of an external data source,
