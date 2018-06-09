@@ -2,6 +2,7 @@ package org.djar.football.model.view;
 
 public class TeamRanking {
 
+    private String clubId;
     private int matchesPlayed;
     private int won;
     private int drawn;
@@ -12,7 +13,8 @@ public class TeamRanking {
     private TeamRanking() {
     }
 
-    public TeamRanking(int matchesPlayed, int won, int drawn, int lose, int goalsFor, int goalsAgainst) {
+    public TeamRanking(String teamId, int matchesPlayed, int won, int drawn, int lose, int goalsFor, int goalsAgainst) {
+        this.clubId = teamId;
         this.matchesPlayed = matchesPlayed;
         this.won = won;
         this.drawn = drawn;
@@ -29,6 +31,10 @@ public class TeamRanking {
         goalsFor += other.goalsFor;
         goalsAgainst += other.goalsAgainst;
         return this;
+    }
+
+    public String getClubId() {
+        return clubId;
     }
 
     public int getMatchesPlayed() {

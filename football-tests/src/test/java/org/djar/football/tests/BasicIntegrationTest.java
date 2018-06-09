@@ -158,6 +158,9 @@ public class BasicIntegrationTest {
 
         assertEvents(MatchFinished.class, "m1");
 
+        // give him some time to process the stream
+        Thread.sleep(500);
+
         // check the score
         MatchScore[] scores = get("http://football-ui:18080/ui/matchScores", MatchScore[].class, 1);
         assertThat(scores[0].getHomeClubId()).isEqualTo("Man Utd");

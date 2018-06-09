@@ -1,0 +1,104 @@
+<html>
+<head>
+    <title>Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+    body {
+        font:13px arial,sans-serif;
+    }
+    * {
+        box-sizing: border-box;
+    }
+    .column {
+        float: left;
+        width: 33.33%;
+        padding: 10px;
+    }
+    .row:after {
+        content: "";
+        display: table;
+        clear: both;
+    }
+</style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.1.5/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <script type="text/javascript">
+    var normalCss = "background-color:#ffffff;";
+    var highlightCss = "background-color:#ffff00;";
+
+    var stompClient = null;
+    var highlighted = null;
+
+    function connect() {
+        var socket = new SockJS('/dashboard');
+        stompClient = Stomp.over(socket);
+        stompClient.connect({}, function(frame) {
+            console.log('Connected: ' + frame);
+            stompClient.subscribe('/topic/MatchScore', function(payload) {
+                var matchScore = JSON.parse(payload.body);
+                var text = document.createTextNode(matchScore.homeClubId + ' vs ' + matchScore.awayClubId + ' '
+                  + matchScore.homeGoals + ' : ' + matchScore.awayGoals);
+                onUpdate(matchScore.id, text, 'MatchScore');
+            });
+            stompClient.subscribe('/topic/TeamRanking', function(payload) {
+                var teamRanking = JSON.parse(payload.body);
+                var text = document.createTextNode(teamRanking.clubId + ' ' + teamRanking.matchesPlayed + ' '
+                    + teamRanking.won + ' ' + teamRanking.drawn + ' ' + teamRanking.lose + ' '
+                    + teamRanking.goalsFor + ' ' + teamRanking.goalsAgainst + ' ' + teamRanking.goalsDifference + ' '
+                    + teamRanking.points);
+                onUpdate(teamRanking.clubId, text, 'TeamRanking');
+            });
+            stompClient.subscribe('/topic/PlayerStatistic', function(payload) {
+                var playerStat = JSON.parse(payload.body);
+                var text = document.createTextNode(playerStat.playerId + ' ' + playerStat.playerName + ' '
+                    + playerStat.goals + ' ' + playerStat.yellowCards + ' ' + playerStat.redCards);
+                onUpdate(playerStat.playerId, text, 'PlayerStatistic');
+            });
+        });
+    }
+
+    function sendMessage() {
+        var from = document.getElementById('from').value;
+        var text = document.getElementById('text').value;
+        stompClient.send('/app/dashboard', {},
+          JSON.stringify({'from':from, 'text':text}));
+    }
+
+    function onUpdate(id, statText, type) {
+        var parent = document.getElementById(type);
+        var pId = type + '_' + id;
+        var p = document.getElementById(pId);
+
+        if (p == null) {
+            p = document.createElement('p');
+            p.id = pId;
+            parent.appendChild(p);
+        } else {
+            p.removeChild(p.childNodes[0]);
+        }
+        if (highlighted != null) {
+            highlighted.style.cssText = normalCss;
+        }
+        p.style.cssText = highlightCss;
+        p.appendChild(statText);
+        highlighted = p;
+    }
+</script>
+</head>
+<body onload="connect()">
+<div class="row">
+    <div class="column">
+        <h3>Match scores</h3>
+        <div id="MatchScore"></div>
+    </div>
+    <div class="column">
+        <h3>Team ranking</h3>
+        <div id="TeamRanking"></div>
+    </div>
+    <div class="column">
+        <h3>Players</h3>
+        <div id="PlayerStatistic"></div>
+    </div>
+</div>
+</body>
+</html>

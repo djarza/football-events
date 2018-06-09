@@ -6,6 +6,7 @@ import org.djar.football.model.event.MatchStarted;
 
 public class MatchScore {
 
+    private String matchId;
     private String homeClubId;
     private String awayClubId;
     private int homeGoals;
@@ -15,6 +16,7 @@ public class MatchScore {
     }
 
     public MatchScore(MatchStarted match) {
+        this.matchId = match.getMatchId();
         this.homeClubId = match.getHomeClubId();
         this.awayClubId = match.getAwayClubId();
     }
@@ -50,19 +52,23 @@ public class MatchScore {
     }
 
     public TeamRanking homeRanking() {
-        return ranking(homeGoals, awayGoals);
+        return ranking(homeClubId, homeGoals, awayGoals);
     }
 
     public TeamRanking awayRanking() {
-        return ranking(awayGoals, homeGoals);
+        return ranking(awayClubId, awayGoals, homeGoals);
     }
 
-    private TeamRanking ranking(int goalsFor, int goalsAgainst) {
+    private TeamRanking ranking(String clubId, int goalsFor, int goalsAgainst) {
         int result = goalsFor - goalsAgainst;
         int won = result > 0 ? 1 : 0;
         int drawn = result == 0 ? 1 : 0;
         int lose = result < 0 ? 1 : 0;
-        return new TeamRanking(1, won, drawn, lose, goalsFor, goalsAgainst);
+        return new TeamRanking(clubId, 1, won, drawn, lose, goalsFor, goalsAgainst);
+    }
+
+    public String getMatchId() {
+        return matchId;
     }
 
     public String getHomeClubId() {

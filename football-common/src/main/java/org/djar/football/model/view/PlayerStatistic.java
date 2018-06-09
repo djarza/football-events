@@ -39,6 +39,10 @@ public class PlayerStatistic {
         return this;
     }
 
+    public String getPlayerId() {
+        return playerId;
+    }
+
     public String getPlayerName() {
         return playerName;
     }
