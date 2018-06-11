@@ -1,25 +1,27 @@
 package org.djar.football.match.controller;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public class NewMatchRequest {
 
     private String id;
+    private LocalDateTime requestTimestamp;
     private String seasonId;
-    private LocalDateTime date;
+    private LocalDateTime matchDate;
     private String homeClubId;
     private String awayClubId;
 
     private NewMatchRequest() {
     }
 
-    public NewMatchRequest(String id, String seasonId, LocalDateTime date, String homeClubId, String awayClubId) {
+    public NewMatchRequest(String id, String seasonId, LocalDateTime matchDate, String homeClubId, String awayClubId,
+            LocalDateTime requestTimestamp) {
         this.id = id;
         this.seasonId = seasonId;
-        this.date = date;
+        this.matchDate = matchDate;
         this.homeClubId = homeClubId;
         this.awayClubId = awayClubId;
+        this.requestTimestamp = requestTimestamp;
     }
 
     public String getId() {
@@ -30,6 +32,14 @@ public class NewMatchRequest {
         this.id = id;
     }
 
+    public LocalDateTime getRequestTimestamp() {
+        return requestTimestamp;
+    }
+
+    public void setRequestTimestamp(LocalDateTime requestTimestamp) {
+        this.requestTimestamp = requestTimestamp;
+    }
+
     public String getSeasonId() {
         return seasonId;
     }
@@ -38,12 +48,12 @@ public class NewMatchRequest {
         this.seasonId = seasonId;
     }
 
-    public LocalDateTime getDate() {
-        return date;
+    public LocalDateTime getMatchDate() {
+        return matchDate;
     }
 
-    public void setDate(LocalDateTime date) {
-        this.date = date;
+    public void setMatchDate(LocalDateTime matchDate) {
+        this.matchDate = matchDate;
     }
 
     public String getHomeClubId() {

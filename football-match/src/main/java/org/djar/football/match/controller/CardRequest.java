@@ -1,9 +1,11 @@
 package org.djar.football.match.controller;
 
+import java.time.LocalDateTime;
+
 public class CardRequest {
 
     private String id;
-    private String matchId;
+    private LocalDateTime requestTimestamp;
     private int minute;
     private String receiverId;
     private String type;
@@ -11,12 +13,12 @@ public class CardRequest {
     private CardRequest() {
     }
 
-    public CardRequest(String id, String matchId, int minute, String receiverId, String type) {
+    public CardRequest(String id, int minute, String receiverId, String type, LocalDateTime requestTimestamp) {
         this.id = id;
-        this.matchId = matchId;
         this.minute = minute;
         this.receiverId = receiverId;
         this.type = type;
+        this.requestTimestamp = requestTimestamp;
     }
 
     public String getId() {
@@ -27,12 +29,12 @@ public class CardRequest {
         this.id = id;
     }
 
-    public String getMatchId() {
-        return matchId;
+    public LocalDateTime getRequestTimestamp() {
+        return requestTimestamp;
     }
 
-    public void setMatchId(String matchId) {
-        this.matchId = matchId;
+    public void setRequestTimestamp(LocalDateTime requestTimestamp) {
+        this.requestTimestamp = requestTimestamp;
     }
 
     public int getMinute() {

@@ -2,9 +2,10 @@ package org.djar.football.tests.utils;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -24,11 +25,9 @@ import org.springframework.web.socket.sockjs.client.WebSocketTransport;
 
 public class WebSocket {
 
-    private final BlockingQueue<Callable<Object>> queue = new LinkedBlockingQueue<>();
-
     private final String url;
     private final WebSocketStompClient client;
-    private final Map<String, Class> subscriptions = new LinkedHashMap<>();
+    private final Map<Class, Subscription> subscriptions = new HashMap<>();
 
     public WebSocket(String url) {
         this.url = url;
@@ -40,45 +39,45 @@ public class WebSocket {
     }
 
     public void subscribe(String topic, Class payloadType) {
-        subscriptions.put(topic, payloadType);
+        subscriptions.put(payloadType, new Subscription(topic, payloadType));
     }
 
     public void connect() {
         client.connect(url, new StompSessionHandlerAdapter() {
             @Override
             public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
-                for (Map.Entry<String, Class> subscription : subscriptions.entrySet()) {
-                    subscribe(session, subscription.getKey(), subscription.getValue());
+                for (Subscription subscription : subscriptions.values()) {
+                    subscribe(session, subscription);
                 }
             }
 
             @Override
             public void handleException(StompSession session, StompCommand command, StompHeaders headers, byte[] payload,
                                         Throwable exception) {
-                queue.add(() -> {
+//                queue.add(() -> {
                     throw new RuntimeException(exception);
-                });
+//                });
             }
 
             @Override
             public void handleTransportError(StompSession session, Throwable exception) {
-                queue.add(() -> {
+//                queue.add(() -> {
                     throw new RuntimeException(exception);
-                });
+//                });
             }
         });
     }
 
-    private StompSession.Subscription subscribe(StompSession session, String topic, Class payloadType) {
-        return session.subscribe(topic, new StompFrameHandler() {
+    private StompSession.Subscription subscribe(StompSession session, Subscription subscription) {
+        return session.subscribe(subscription.topic, new StompFrameHandler() {
             @Override
             public Type getPayloadType(StompHeaders headers) {
-                return payloadType;
+                return subscription.payloadType;
             }
 
             @Override
             public void handleFrame(StompHeaders headers, Object payload) {
-                queue.add(() -> payload);
+                subscription.add(payload);
             }
         });
     }
@@ -87,13 +86,75 @@ public class WebSocket {
         client.stop();
     }
 
-    public Object read(long timeout, TimeUnit unit) throws InterruptedException {
-        try {
-            return queue.poll(timeout, unit).call();
-        } catch (RuntimeException | InterruptedException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+    public <T> T readLast(Class<T> payloadType, long timeout, TimeUnit unit)  {
+        Subscription subscription = Objects.requireNonNull(subscriptions.get(payloadType));
+        return (T) subscription.getLast(timeout, unit);
+    }
+
+    public <T> List<T> readAll(Class<T> payloadType, int count, long timeout, TimeUnit unit) {
+        Subscription subscription = Objects.requireNonNull(subscriptions.get(payloadType));
+        return subscription.getAll(count, timeout, unit);
+    }
+
+    private class Subscription<T> {
+
+        private final String topic;
+        private final Class<T> payloadType;
+        private final BlockingQueue<Callable<T>> queue = new LinkedBlockingQueue<>();
+
+        public Subscription(String topic, Class<T> payloadType) {
+            this.topic = topic;
+            this.payloadType = payloadType;
+        }
+
+        public void add(Object payload) {
+            if (!payloadType.isInstance(payload)) {
+                throw new IllegalArgumentException("The expected payload type is " + payloadType + ", but found "
+                    + String.valueOf(payload));
+            }
+            queue.add(() -> (T)payload);
+        }
+
+        public T getLast(long timeout, TimeUnit unit) {
+            try {
+                Callable<T> recent = null;
+
+                while (true) {
+                    Callable<T> item = queue.poll();
+
+                    if (item == null) {
+                        break;
+                    }
+                    recent = item;
+                }
+                if (recent == null) {
+                    recent = queue.poll(timeout, unit);
+                }
+                return recent.call();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        public List<T> getAll(int count, long timeout, TimeUnit unit) {
+            List<T> result = new ArrayList<>(count);
+            long currentTimeout = unit.toMillis(timeout);
+            long endTime = System.currentTimeMillis() + currentTimeout;
+
+            try {
+                do {
+                    Callable<T> callable = queue.poll(timeout, TimeUnit.MILLISECONDS);
+
+                    if (callable == null) {
+
+                    }
+                    result.add(callable.call());
+                    currentTimeout = endTime - System.currentTimeMillis();
+                } while (result.size() < count && currentTimeout > 0);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+            return result;
         }
     }
 }

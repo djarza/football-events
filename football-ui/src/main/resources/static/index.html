@@ -50,8 +50,8 @@
             });
             stompClient.subscribe('/topic/PlayerStatistic', function(payload) {
                 var playerStat = JSON.parse(payload.body);
-                var text = document.createTextNode(playerStat.playerId + ' ' + playerStat.playerName + ' '
-                    + playerStat.goals + ' ' + playerStat.yellowCards + ' ' + playerStat.redCards);
+                var text = document.createTextNode(playerStat.playerName + ' ' + playerStat.goals + ' '
+                    + playerStat.yellowCards + ' ' + playerStat.redCards);
                 onUpdate(playerStat.playerId, text, 'PlayerStatistic');
             });
         });

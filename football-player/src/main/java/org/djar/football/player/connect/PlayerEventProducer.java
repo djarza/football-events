@@ -35,8 +35,8 @@ public class PlayerEventProducer {
 
         playerSourceStream.foreach(this::debug);
 
-        KStream<String, PlayerStartedCareer> playerReadyStream = playerSourceStream.map(
-                (id, json) -> {
+        KStream<String, PlayerStartedCareer> playerReadyStream = playerSourceStream
+                .map((id, json) -> {
                     PlayerStartedCareer event = createEvent(json);
                     return KeyValue.pair(event.getAggId(), event);
                 });

@@ -7,7 +7,7 @@ public class EventMetadata {
     private long timestamp;
     private int version;
 
-    private EventMetadata() {
+    public EventMetadata() {
     }
 
     public EventMetadata(String eventId, String processId, long timestamp, int version) {
@@ -21,16 +21,32 @@ public class EventMetadata {
         return eventId;
     }
 
+    public void setEventId(String eventId) {
+        this.eventId = eventId;
+    }
+
     public String getProcessId() {
         return processId;
+    }
+
+    public void setProcessId(String processId) {
+        this.processId = processId;
     }
 
     public long getTimestamp() {
         return timestamp;
     }
 
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
+    }
+
     public int getVersion() {
         return version;
+    }
+
+    public void setVersion(int version) {
+        this.version = version;
     }
 
     @Override

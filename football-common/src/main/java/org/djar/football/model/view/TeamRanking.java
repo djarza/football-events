@@ -1,5 +1,7 @@
 package org.djar.football.model.view;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public class TeamRanking {
 
     private String clubId;
@@ -85,10 +87,12 @@ public class TeamRanking {
         this.goalsAgainst = goalsAgainst;
     }
 
+    @JsonIgnore
     public int getGoalsDifference() {
         return goalsFor - goalsAgainst;
     }
 
+    @JsonIgnore
     public int getPoints() {
         return won * 3 + drawn;
     }

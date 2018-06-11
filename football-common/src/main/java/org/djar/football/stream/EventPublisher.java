@@ -43,8 +43,14 @@ public class EventPublisher {
     }
 
     public void fillOut(Event event) {
-        long timestamp = System.currentTimeMillis();
-        event.setMetadata(new EventMetadata(generateId(), processId, timestamp, apiVersion));
+        EventMetadata md = event.getMetadata();
+        md.setEventId(generateId());
+        md.setProcessId(processId);
+        md.setVersion(apiVersion);
+
+        if (md.getTimestamp() == 0) {
+            md.setTimestamp(System.currentTimeMillis());
+        }
     }
 
     private String generateId() {

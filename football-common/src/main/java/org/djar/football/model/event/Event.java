@@ -1,8 +1,11 @@
 package org.djar.football.model.event;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+
 public abstract class Event {
 
-    private EventMetadata metadata;
+    private final EventMetadata metadata = new EventMetadata();
 
     public abstract String getAggId();
 
@@ -10,8 +13,13 @@ public abstract class Event {
         return metadata;
     }
 
-    public void setMetadata(EventMetadata metadata) {
-        this.metadata = metadata;
+    public Event timestamp(long timestamp) {
+        metadata.setTimestamp(timestamp);
+        return this;
+    }
+
+    public Event timestamp(LocalDateTime timestamp) {
+        return timestamp(timestamp.toInstant(ZoneOffset.of("Z")).toEpochMilli());
     }
 
     @Override
