@@ -1,6 +1,10 @@
 # Event-Driven microservices with Kafka Streams
 
-A skeleton example of how to use [Kafka Streams](https://kafka.apache.org/documentation/streams/) with Event-Driven microservices. This is an application that generates a simple football statistics like match scores, team and player rankings. It should be a little more comprehensible than a typical code examples based on orders, payments etc.
+A skeleton example of how to use [Kafka Streams](https://kafka.apache.org/documentation/streams/) with Event-Driven microservices.
+
+This is an application that generates a simple football statistics like match scores, team and player rankings. It should be a little more comprehensible than a typical code examples based on orders, payments etc.
+
+&nbsp;
 
 ![architecture](docs/architecture.png)
 
@@ -36,7 +40,7 @@ Each [event](football-common/src/main/java/org/djar/football/model/event/) repre
 
 | Event               | Fields                                                 |
 | ------------------- | ------------------------------------------------------ |
-| MatchScheduled      | match id, season, home club, away club, date           |
+| MatchScheduled      | match id, season, home club, away club, matchDate           |
 | MatchStarted        | match id, home club, away club                         |
 | GoalScored          | goal id, match id, minute, scorer, scored for          |
 | CardReceived        | card id, match id, minute, receiver, type (yellow/red) |
