@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 public class CardRequest {
 
     private String id;
-    private LocalDateTime requestTimestamp;
+    private LocalDateTime reqTimestamp;
     private int minute;
     private String receiverId;
     private String type;
@@ -13,12 +13,12 @@ public class CardRequest {
     private CardRequest() {
     }
 
-    public CardRequest(String id, int minute, String receiverId, String type, LocalDateTime requestTimestamp) {
+    public CardRequest(String id, int minute, String receiverId, String type, LocalDateTime reqTimestamp) {
         this.id = id;
         this.minute = minute;
         this.receiverId = receiverId;
         this.type = type;
-        this.requestTimestamp = requestTimestamp;
+        this.reqTimestamp = reqTimestamp;
     }
 
     public String getId() {
@@ -29,12 +29,12 @@ public class CardRequest {
         this.id = id;
     }
 
-    public LocalDateTime getRequestTimestamp() {
-        return requestTimestamp;
+    public LocalDateTime getReqTimestamp() {
+        return reqTimestamp;
     }
 
-    public void setRequestTimestamp(LocalDateTime requestTimestamp) {
-        this.requestTimestamp = requestTimestamp;
+    public void setReqTimestamp(LocalDateTime reqTimestamp) {
+        this.reqTimestamp = reqTimestamp;
     }
 
     public int getMinute() {

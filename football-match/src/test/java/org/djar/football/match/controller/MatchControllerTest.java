@@ -91,7 +91,7 @@ public class MatchControllerTest {
         assertThat(event.getScoredFor()).isEqualTo("t2");
     }
 
-    @Test(expected = InvalidRequestExeption.class)
+    @Test(expected = NotFoundException.class)
     public void scoreGoalInNonExistentMatch() {
         controller.scoreGoalForHomeTeam("FAKE_MATCH", new GoalRequest("goal1", 22, "player1", LocalDateTime.now()))
                 .block();

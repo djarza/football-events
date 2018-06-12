@@ -5,14 +5,14 @@ import java.time.LocalDateTime;
 public class MatchStateRequest {
 
     private String newState;
-    private LocalDateTime requestTimestamp;
+    private LocalDateTime reqTimestamp;
 
     private MatchStateRequest() {
     }
 
-    public MatchStateRequest(String newState, LocalDateTime requestTimestamp) {
+    public MatchStateRequest(String newState, LocalDateTime reqTimestamp) {
         this.newState = newState;
-        this.requestTimestamp = requestTimestamp;
+        this.reqTimestamp = reqTimestamp;
     }
 
     public String getNewState() {
@@ -23,11 +23,11 @@ public class MatchStateRequest {
         this.newState = newState;
     }
 
-    public LocalDateTime getRequestTimestamp() {
-        return requestTimestamp;
+    public LocalDateTime getReqTimestamp() {
+        return reqTimestamp;
     }
 
-    public void setRequestTimestamp(LocalDateTime requestTimestamp) {
-        this.requestTimestamp = requestTimestamp;
+    public void setReqTimestamp(LocalDateTime reqTimestamp) {
+        this.reqTimestamp = reqTimestamp;
     }
 }

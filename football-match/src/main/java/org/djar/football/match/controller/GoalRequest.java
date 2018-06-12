@@ -5,18 +5,18 @@ import java.time.LocalDateTime;
 public class GoalRequest {
 
     private String id;
-    private LocalDateTime requestTimestamp;
+    private LocalDateTime reqTimestamp;
     private int minute;
     private String scorerId;
 
     private GoalRequest() {
     }
 
-    public GoalRequest(String id, int minute, String scorerId, LocalDateTime requestTimestamp) {
+    public GoalRequest(String id, int minute, String scorerId, LocalDateTime reqTimestamp) {
         this.id = id;
         this.minute = minute;
         this.scorerId = scorerId;
-        this.requestTimestamp = requestTimestamp;
+        this.reqTimestamp = reqTimestamp;
     }
 
     public String getId() {
@@ -43,11 +43,11 @@ public class GoalRequest {
         this.scorerId = scorerId;
     }
 
-    public LocalDateTime getRequestTimestamp() {
-        return requestTimestamp;
+    public LocalDateTime getReqTimestamp() {
+        return reqTimestamp;
     }
 
-    public void setRequestTimestamp(LocalDateTime requestTimestamp) {
-        this.requestTimestamp = requestTimestamp;
+    public void setReqTimestamp(LocalDateTime reqTimestamp) {
+        this.reqTimestamp = reqTimestamp;
     }
 }

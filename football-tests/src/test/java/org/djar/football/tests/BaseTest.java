@@ -8,6 +8,7 @@ import static org.springframework.http.HttpStatus.CREATED;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -35,7 +36,7 @@ import org.springframework.util.StreamUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
-public class BaseTest {
+public abstract class BaseTest {
 
     private static final Logger logger = LoggerFactory.getLogger(BaseTest.class);
 
@@ -50,6 +51,7 @@ public class BaseTest {
     protected static final Properties consumerProps = new Properties();
 
     protected static HttpStatus command(String url, HttpMethod method, String json, HttpStatus retryStatus) {
+        logger.trace(json);
         HttpStatus currentStatus;
         long endTime = System.currentTimeMillis() + REST_RETRY_TIMEOUT;
 
@@ -72,9 +74,9 @@ public class BaseTest {
     }
 
     protected static HttpStatus command(String url, HttpMethod method, String json) {
+        logger.trace(json);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        logger.trace(json);
 
         try {
             return rest.exchange(url, method, new HttpEntity<>(json, headers), String.class).getStatusCode();
@@ -185,4 +187,15 @@ public class BaseTest {
             logger.warn("Connector already exists");
         }
     }
+
+    protected static void createPlayersTable() {
+        postgres.execute("CREATE TABLE IF NOT EXISTS players"
+            + "(id bigint PRIMARY KEY, name varchar(50) NOT NULL, created timestamp NOT NULL)");
+    }
+
+    protected static void insertPlayer(Integer playerId, String name) {
+        postgres.update("INSERT INTO players VALUES (?, ?, ?) ON CONFLICT DO NOTHING",
+            playerId, name, new Timestamp(System.currentTimeMillis()));
+    }
+
 }

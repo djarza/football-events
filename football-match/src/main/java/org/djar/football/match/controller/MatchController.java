@@ -47,7 +47,7 @@ public class MatchController {
     public Mono<Void> scheduleMatch(@RequestBody NewMatchRequest request) {
         Event event = new MatchScheduled(request.getId(), request.getSeasonId(), request.getMatchDate(),
                 request.getHomeClubId(), request.getAwayClubId())
-                .timestamp(request.getRequestTimestamp());
+                .timestamp(request.getReqTimestamp());
         logger.debug("Scheduling a request: {}", event);
         return publisher.fire(event);
     }
@@ -71,7 +71,7 @@ public class MatchController {
             } else {
                 throw new UnsupportedOperationException("State " + newState + " not implemented yet");
             }
-            event.timestamp(request.getRequestTimestamp());
+            event.timestamp(request.getReqTimestamp());
             sink.success(event);
         }).flatMap(publisher::fire);
     }
@@ -85,7 +85,7 @@ public class MatchController {
                     () -> new NotFoundException("Player not found", request.getScorerId()));
             Event event = new GoalScored(request.getId(), matchId, request.getMinute(), scorer.getId(),
                     match.getHomeTeam().getClubId())
-                    .timestamp(request.getRequestTimestamp());
+                    .timestamp(request.getReqTimestamp());
             logger.debug("Scoring a goal for the home team: {}", event);
             sink.success(event);
         }).flatMap(publisher::fire);
@@ -100,7 +100,7 @@ public class MatchController {
                     () -> new NotFoundException("Player not found", request.getScorerId()));
             Event event = new GoalScored(request.getId(), matchId, request.getMinute(), scorer.getId(),
                     match.getAwayTeam().getClubId())
-                    .timestamp(request.getRequestTimestamp());
+                    .timestamp(request.getReqTimestamp());
             logger.debug("Scoring a goal for the away team: {}", event);
             sink.success(event);
         }).flatMap(publisher::fire);
@@ -115,7 +115,7 @@ public class MatchController {
                     () -> new NotFoundException("Player not found", request.getReceiverId()));
             Event event = new CardReceived(request.getId(), matchId, request.getMinute(), receiver.getId(),
                     CardReceived.Type.valueOf(request.getType()))
-                    .timestamp(request.getRequestTimestamp());
+                    .timestamp(request.getReqTimestamp());
             logger.debug("Showing a card {}", event);
             sink.success(event);
         }).flatMap(publisher::fire);
@@ -123,7 +123,7 @@ public class MatchController {
 
     private Match findRelatedMatch(String matchId) {
         Match match = matchRepository.find(matchId).orElseThrow(
-                () -> new InvalidRequestExeption("Match not found " + matchId));
+                () -> new NotFoundException("Match not found", matchId));
 
         if (match.getState() != State.STARTED) {
             throw new InvalidRequestExeption("Match state must be " + State.STARTED + " instead of "

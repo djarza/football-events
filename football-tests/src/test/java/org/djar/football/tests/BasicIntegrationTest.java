@@ -1,5 +1,6 @@
 package org.djar.football.tests;
 
+import static java.time.LocalDateTime.now;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.HttpMethod.PATCH;
@@ -12,7 +13,6 @@ import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
 import java.util.Arrays;
 import java.util.Comparator;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.common.serialization.StringDeserializer;
 import org.djar.football.model.event.CardReceived;
 import org.djar.football.model.event.GoalScored;
 import org.djar.football.model.event.MatchFinished;
@@ -70,9 +70,9 @@ public class BasicIntegrationTest extends BaseTest {
         // create database with some initial data
         postgres = new JdbcTemplate(new SimpleDriverDataSource(new Driver(),
             "jdbc:postgresql://postgres:5432/postgres", "postgres", "postgres"));
-        postgres.execute("CREATE TABLE IF NOT EXISTS players (id bigint PRIMARY KEY, name varchar(50) NOT NULL)");
-        postgres.execute("INSERT INTO players VALUES (101, 'Player101') ON CONFLICT DO NOTHING");
-        postgres.execute("INSERT INTO players VALUES (102, 'Player102') ON CONFLICT DO NOTHING");
+        createPlayersTable();
+        insertPlayer(101, "Player101");
+        insertPlayer(102, "Player102");
 
         createConnector("http://connect:8083/connectors/", "football-connector.json");
     }
@@ -91,19 +91,20 @@ public class BasicIntegrationTest extends BaseTest {
         query("http://football-ui:18080/ui/matchScores", MatchScore[].class, 0);
 
         // create another player
-        postgres.execute("INSERT INTO players VALUES (103, 'Player103') ON CONFLICT DO NOTHING");
+        insertPlayer(103, "Player103");
         waitForEvents(PlayerStartedCareer.class, 3);
 
         // schedule a new match
         assertThat(command("http://football-match:18081/command/matches",
-            POST, "{\"id\":\"m1\", \"seasonId\":\"s1\", \"date\":\"2018-05-26T15:00:00\"," +
-                "\"homeClubId\":\"Man Utd\", \"awayClubId\":\"Liverpool\"}")).isEqualTo(CREATED);
+            POST, "{\"id\":\"m1\", \"seasonId\":\"s1\", \"matchDate\":\"2018-05-26T15:00:00\"," +
+                "\"homeClubId\":\"Man Utd\", \"awayClubId\":\"Liverpool\", \"reqTimestamp\":\"" + now() + "\"}"))
+                .isEqualTo(CREATED);
         // the request is processed asynchronously, so wait for the right waitForEvent before the next step
         assertThat(waitForEvent(MatchScheduled.class).getAggId()).isEqualTo("m1");
 
         // change match status from SCHEDULED to STARTED
         assertThat(command("http://football-match:18081/command/matches/m1",
-            PATCH, "\"STARTED\"", NOT_FOUND)).isEqualTo(NO_CONTENT);
+            PATCH, "{\"newState\":\"STARTED\", \"reqTimestamp\":\"" + now() + "\"}", NOT_FOUND)).isEqualTo(NO_CONTENT);
         // waitForEvent and the initial score 0:0
         assertThat(waitForEvent(MatchStarted.class).getAggId()).isEqualTo("m1");
         assertThat(waitForWebSocket(MatchScore.class).getHomeGoals()).isEqualTo(0);
@@ -112,7 +113,8 @@ public class BasicIntegrationTest extends BaseTest {
 
         // finish the match
         assertThat(command("http://football-match:18081/command/matches/m1",
-            PATCH, "\"FINISHED\"")).isEqualTo(NO_CONTENT);
+            PATCH, "{\"newState\":\"FINISHED\", \"reqTimestamp\":\"" + now() + "\"}"))
+                .isEqualTo(NO_CONTENT);
         assertThat(waitForEvent(MatchFinished.class).getAggId()).isEqualTo("m1");
         waitForWebSocket(TeamRanking.class, 2);
 
@@ -122,29 +124,34 @@ public class BasicIntegrationTest extends BaseTest {
     private void goalsAndCards() {
         // some goals and cards during the match
         assertThat(command("http://football-match:18081/command/matches/m1/homeGoals",
-            POST, "{\"id\":\"g1\", \"minute\":20, \"scorerId\":\"101\"}", UNPROCESSABLE_ENTITY)).isEqualTo(CREATED);
+            POST, "{\"id\":\"g1\", \"minute\":20, \"scorerId\":\"101\", \"reqTimestamp\":\""
+                + now() + "\"}", UNPROCESSABLE_ENTITY)).isEqualTo(CREATED);
         assertThat(waitForEvent(GoalScored.class).getAggId()).isEqualTo("m1");
         assertThat(waitForWebSocket(MatchScore.class).getHomeGoals()).isEqualTo(1);
         assertThat(waitForWebSocket(PlayerStatistic.class).getGoals()).isEqualTo(1);
 
         assertThat(command("http://football-match:18081/command/matches/m1/awayGoals",
-            POST, "{\"id\":\"g2\", \"minute\":30, \"scorerId\":\"102\"}")).isEqualTo(CREATED);
+            POST, "{\"id\":\"g2\", \"minute\":30, \"scorerId\":\"102\", \"reqTimestamp\":\""
+                + now() + "\"}")).isEqualTo(CREATED);
         assertThat(waitForEvent(GoalScored.class).getAggId()).isEqualTo("m1");
         assertThat(waitForWebSocket(MatchScore.class).getAwayGoals()).isEqualTo(1);
         assertThat(waitForWebSocket(PlayerStatistic.class).getGoals()).isEqualTo(1);
 
         assertThat(command("http://football-match:18081/command/matches/m1/cards",
-            POST, "{\"id\":\"c1\", \"minute\":40, \"receiverId\":\"102\", \"type\":\"YELLOW\"}")).isEqualTo(CREATED);
+            POST, "{\"id\":\"c1\", \"minute\":40, \"receiverId\":\"102\", \"type\":\"YELLOW\", \"reqTimestamp\":\""
+                + now() + "\"}")).isEqualTo(CREATED);
         assertThat(waitForEvent(CardReceived.class).getMatchId()).isEqualTo("m1");
         assertThat(waitForWebSocket(PlayerStatistic.class).getYellowCards()).isEqualTo(1);
 
         assertThat(command("http://football-match:18081/command/matches/m1/cards",
-            POST, "{\"id\":\"c1\", \"minute\":40, \"receiverId\":\"103\", \"type\":\"RED\"}")).isEqualTo(CREATED);
+            POST, "{\"id\":\"c1\", \"minute\":40, \"receiverId\":\"103\", \"type\":\"RED\", \"reqTimestamp\":\""
+                + now() + "\"}")).isEqualTo(CREATED);
         assertThat(waitForEvent(CardReceived.class).getAggId()).isEqualTo("m1");
         assertThat(waitForWebSocket(PlayerStatistic.class).getRedCards()).isEqualTo(1);
 
         assertThat(command("http://football-match:18081/command/matches/m1/homeGoals",
-            POST, "{\"id\":\"g3\", \"minute\":50, \"scorerId\":\"101\"}")).isEqualTo(CREATED);
+            POST, "{\"id\":\"g3\", \"minute\":50, \"scorerId\":\"101\", \"reqTimestamp\":\""
+                + now() + "\"}")).isEqualTo(CREATED);
         assertThat(waitForEvent(GoalScored.class).getAggId()).isEqualTo("m1");
         assertThat(waitForWebSocket(MatchScore.class).getHomeGoals()).isEqualTo(2);
         assertThat(waitForWebSocket(PlayerStatistic.class).getGoals()).isEqualTo(2);
@@ -185,25 +192,27 @@ public class BasicIntegrationTest extends BaseTest {
     @Test
     public void startNonExistentMatch() {
         assertThat(command("http://football-match:18081/command/matches/FAKE_MATCH",
-            PATCH, "\"STARTED\"")).isEqualTo(NOT_FOUND);
+            PATCH, "{\"newState\":\"STARTED\", \"reqTimestamp\":\"" + now() + "\"}")).isEqualTo(NOT_FOUND);
     }
 
     @Test
     public void scoreGoalInNonExistentMatch() {
-        assertThat(command("http://football-match:18081/command/matches/FAKE_MATCH",
-            PATCH, "\"STARTED\"")).isEqualTo(NOT_FOUND);
+        assertThat(command("http://football-match:18081/command/matches/FAKE_MATCH/homeGoals",
+            POST, "{\"id\":\"g100\", \"minute\":20, \"scorerId\":\"101\", \"reqTimestamp\":\""
+                + now() + "\"}")).isEqualTo(NOT_FOUND);
     }
 
     @Test
     public void scoreGoalInNotStartedMatch() {
         assertThat(command("http://football-match:18081/command/matches",
-            POST, "{\"id\":\"NOT_STARTED_MATCH\", \"seasonId\":\"s1\", \"date\":\"2018-05-26T15:00:00\"," +
-                "\"homeClubId\":\"Man City\", \"awayClubId\":\"Chelsea\"}")).isEqualTo(CREATED);
+            POST, "{\"id\":\"NOT_STARTED_MATCH\", \"seasonId\":\"s1\", \"matchDate\":\"2018-05-26T15:00:00\"," +
+                "\"homeClubId\":\"Man City\", \"awayClubId\":\"Chelsea\", \"reqTimestamp\":\"" + now() + "\"}"))
+                .isEqualTo(CREATED);
 
         assertThat(waitForEvent(MatchScheduled.class).getAggId()).isEqualTo("NOT_STARTED_MATCH");
 
         assertThat(command("http://football-match:18081/command/matches/NOT_STARTED_MATCH/homeGoals",
-            POST, "{\"id\":\"g1000\", \"minute\":10, \"scorerId\":\"101\"}")).isEqualTo(UNPROCESSABLE_ENTITY);
+            POST, "{\"id\":\"g1000\", \"minute\":10, \"scorerId\":\"101\", \"reqTimestamp\":\"" + now() + "\"}"))
+                .isEqualTo(UNPROCESSABLE_ENTITY);
     }
-
 }

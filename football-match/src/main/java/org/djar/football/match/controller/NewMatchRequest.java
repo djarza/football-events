@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 public class NewMatchRequest {
 
     private String id;
-    private LocalDateTime requestTimestamp;
+    private LocalDateTime reqTimestamp;
     private String seasonId;
     private LocalDateTime matchDate;
     private String homeClubId;
@@ -15,13 +15,13 @@ public class NewMatchRequest {
     }
 
     public NewMatchRequest(String id, String seasonId, LocalDateTime matchDate, String homeClubId, String awayClubId,
-            LocalDateTime requestTimestamp) {
+            LocalDateTime reqTimestamp) {
         this.id = id;
         this.seasonId = seasonId;
         this.matchDate = matchDate;
         this.homeClubId = homeClubId;
         this.awayClubId = awayClubId;
-        this.requestTimestamp = requestTimestamp;
+        this.reqTimestamp = reqTimestamp;
     }
 
     public String getId() {
@@ -32,12 +32,12 @@ public class NewMatchRequest {
         this.id = id;
     }
 
-    public LocalDateTime getRequestTimestamp() {
-        return requestTimestamp;
+    public LocalDateTime getReqTimestamp() {
+        return reqTimestamp;
     }
 
-    public void setRequestTimestamp(LocalDateTime requestTimestamp) {
-        this.requestTimestamp = requestTimestamp;
+    public void setReqTimestamp(LocalDateTime reqTimestamp) {
+        this.reqTimestamp = reqTimestamp;
     }
 
     public String getSeasonId() {
