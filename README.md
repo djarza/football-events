@@ -87,4 +87,6 @@ There are only two REST endpoits and both of them are accessed from the outside 
     ```
 - Wait a minute and launch [http://localhost:18080/](http://localhost:18080/). In a few seconds you should see some statistics updated in real time:
 
-![demo](docs/screenshot.png)
+![demo](docs/demo.gif)
+
+The input is historical data from English Football League Championship. The historical events (goal scored, card received etc.) are played back every few seconds.
