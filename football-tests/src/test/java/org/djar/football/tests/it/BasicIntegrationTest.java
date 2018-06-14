@@ -1,4 +1,4 @@
-package org.djar.football.tests;
+package org.djar.football.tests.it;
 
 import static java.time.LocalDateTime.now;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -20,7 +20,7 @@ import org.djar.football.model.event.PlayerStartedCareer;
 import org.djar.football.model.view.MatchScore;
 import org.djar.football.model.view.PlayerStatistic;
 import org.djar.football.model.view.TeamRanking;
-import org.djar.football.tests.utils.Errors;
+import org.djar.football.tests.FootballEcosystem;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -31,11 +31,11 @@ public class BasicIntegrationTest {
     @Rule
     public Errors errors = new Errors();
 
-    private static FootballApplication fbApp;
+    private static FootballEcosystem fbApp;
 
     @BeforeClass
     public static void setup()  {
-        fbApp = new FootballApplication();
+        fbApp = new FootballEcosystem();
         fbApp.start();
     }
 

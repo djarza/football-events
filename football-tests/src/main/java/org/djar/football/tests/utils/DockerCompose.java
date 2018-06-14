@@ -9,7 +9,6 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.PumpStreamHandler;
-import org.junit.AfterClass;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -50,7 +49,6 @@ public class DockerCompose {
         }
     }
 
-    @AfterClass
     public void down() {
         if (startupFailed) {
             logger.warn("Not shutting down Docker Compose - check the error");

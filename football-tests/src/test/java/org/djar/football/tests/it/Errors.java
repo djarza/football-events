@@ -1,4 +1,4 @@
-package org.djar.football.tests.utils;
+package org.djar.football.tests.it;
 
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;

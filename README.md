@@ -31,7 +31,7 @@ Additional modules:
 - __[football-common](football-common/)__ - contains some code that is shared among microservices (obviously it's not a good practice for production), especially:
     - [events](football-common/src/main/java/org/djar/football/model/event/) are used by __[football-match](football-match/)__, __[football-player](football-player/)__ and __[football_view](football-view/)__,
     - [statistics](football-common/src/main/java/org/djar/football/model/view/) - __[football-view](football-view/)__, __[football-ui](football-ui/)__,
-- __[football-tests](football-tests/)__ - integration tests.
+- __[football-tests](football-tests/)__ - demo application and integration tests.
 
 
 ## Events and streams
@@ -74,8 +74,17 @@ There are only two REST endpoits and both of them are accessed from the outside 
     127.0.0.1 football-view
     127.0.0.1 football-ui
     ```
-- Run Kafka and microservices:
+- Build microservices and Docker containers:
     ```
-    docker-compose up -d
+    cd football
+    mvn install
     ```
-- So far, there is no test data or data generator besides a simple [integration test](football-tests/).
+- Build and run the demo application:
+    ```
+    cd football-tests
+    mvn install -DskipTests
+    java -jar target/football-tests-0.0.1-SNAPSHOT-jar-with-dependencies.jar
+    ```
+- Launch [http://localhost:18080/](http://localhost:18080/). In a few seconds you should see some statistics updated in real time:
+
+<img src="docs/screenshot.png" width="100%" height="100%">
