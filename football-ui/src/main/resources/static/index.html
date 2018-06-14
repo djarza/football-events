@@ -38,14 +38,14 @@
                 var matchScore = JSON.parse(payload.body);
                 var text = document.createTextNode(matchScore.homeClubId + ' vs ' + matchScore.awayClubId + ' '
                   + matchScore.homeGoals + ' : ' + matchScore.awayGoals);
-                onUpdate(matchScore.id, text, 'MatchScore');
+                onUpdate(matchScore.matchId, text, 'MatchScore');
             });
             stompClient.subscribe('/topic/TeamRanking', function(payload) {
                 var teamRanking = JSON.parse(payload.body);
                 var text = document.createTextNode(teamRanking.clubId + ' ' + teamRanking.matchesPlayed + ' '
                     + teamRanking.won + ' ' + teamRanking.drawn + ' ' + teamRanking.lose + ' '
-                    + teamRanking.goalsFor + ' ' + teamRanking.goalsAgainst + ' ' + teamRanking.goalsDifference + ' '
-                    + teamRanking.points);
+                    + teamRanking.goalsFor + ' ' + teamRanking.goalsAgainst + ' '
+                    /* + teamRanking.goalsDifference + ' ' + teamRanking.points */);
                 onUpdate(teamRanking.clubId, text, 'TeamRanking');
             });
             stompClient.subscribe('/topic/PlayerStatistic', function(payload) {
