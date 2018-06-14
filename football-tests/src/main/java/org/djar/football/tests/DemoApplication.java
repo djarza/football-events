@@ -1,7 +1,6 @@
 package org.djar.football.tests;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.text.DateFormat;
@@ -10,9 +9,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -47,18 +43,18 @@ public class DemoApplication {
 
             while (true) {
                 String[] currentLine = nextLine;
-                Date reqTimestamp = nextReqTimestamp;
 
                 if (currentLine[1].startsWith("INSERT")) {
-                    sql(reqTimestamp, currentLine);
+                    sql(currentLine);
                 } else {
-                    rest(reqTimestamp, currentLine);
+                    rest(currentLine);
                 }
                 nextLine = readLine(reader);
 
                 if (nextLine == null) {
                     return;
                 }
+                Date reqTimestamp = nextReqTimestamp;
                 nextReqTimestamp = isoFormat.parse(nextLine[0]);
 
                 wait(reqTimestamp, nextReqTimestamp);
@@ -83,7 +79,7 @@ public class DemoApplication {
         }
         logger.debug("{} ms delay...", delay);
         sleep(delay);
-   }
+    }
 
     private void sleep(long delay) {
         try {
@@ -102,11 +98,11 @@ public class DemoApplication {
         return line.split("\t");
     }
 
-    private void rest(Date reqTimestamp, String[] tokens) throws Exception {
-        String httpMethod = tokens[1];
-        String url = tokens[2];
-        String body = tokens[3];
-        body = applyParams(tokens, 4, body, isoFormat);
+    private void rest(String[] line) {
+        String httpMethod = line[1];
+        String url = line[2];
+        String body = line[3];
+        body = applyParams(line, 4, body, isoFormat);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -130,11 +126,12 @@ public class DemoApplication {
                 throw new RuntimeException(httpMethod + " " + url + " " + body, e);
             }
         }
-        throw new RuntimeException("Status is still " + statusCode + " " + httpMethod + " " + url + " " + body);
+        throw new RuntimeException("Response status is still " + statusCode + " " + httpMethod + " " + url
+                + " " + body);
     }
 
-    private void sql(Date reqTimestamp, String[] tokens) throws Exception {
-        String sql = applyParams(tokens, 2, tokens[1], sqlFormat);
+    private void sql(String[] line) {
+        String sql = applyParams(line, 2, line[1], sqlFormat);
 
         try {
             fbApp.executeSql(sql);
@@ -144,14 +141,18 @@ public class DemoApplication {
         }
     }
 
-    private String applyParams(String[] tokens, int fromIndex, String body, DateFormat dateFormat) throws ParseException {
+    private String applyParams(String[] line, int fromIndex, String body, DateFormat dateFormat) {
         String result = body;
         int paramIndex = 0;
 
-        for (int tokenIndex = fromIndex; tokenIndex < tokens.length; tokenIndex++) {
-            Date date = dateFormat.parse(tokens[tokenIndex]);
-            String param = dateFormat.format(calculate(date));
-            result = result.replace("${" + paramIndex++ + "}", param);
+        for (int tokenIndex = fromIndex; tokenIndex < line.length; tokenIndex++) {
+            try {
+                Date date = dateFormat.parse(line[tokenIndex]);
+                String param = dateFormat.format(calculate(date));
+                result = result.replace("${" + paramIndex++ + "}", param);
+            } catch (ParseException e) {
+                throw new RuntimeException("Invalid record at " + line[0]);
+            }
         }
         return result;
     }
@@ -162,20 +163,17 @@ public class DemoApplication {
     }
 
     public static void main(String[] args) throws Exception {
-        long started = System.currentTimeMillis();
         FootballEcosystem fbApp = new FootballEcosystem();
+        fbApp.start();
 
-        try {
-            fbApp.start();
+        logger.info("*************************************************");
+        logger.info("Dashboard is available at http://localhost:18080/");
+        logger.info("*************************************************");
 
-            logger.info("*************************************************");
-            logger.info("Dashboard is available at http://localhost:18080/");
-            logger.info("*************************************************");
+        DemoApplication gen = new DemoApplication(fbApp);
+        gen.generateFrom("EFL-Championship-2015-2018.txt");
 
-            DemoApplication gen = new DemoApplication(fbApp);
-            gen.generateFrom("EFL-Championship-2015-2018.txt");
-        } finally {
-//            fbApp.shutdown();
-        }
+        // shutdown only if no exception
+        fbApp.shutdown();
     }
 }

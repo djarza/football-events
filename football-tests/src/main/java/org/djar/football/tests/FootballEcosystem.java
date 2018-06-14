@@ -168,7 +168,7 @@ public class FootballEcosystem {
 
     public <T extends Event> List<T> waitForEvents(Class<T> type, int expectedEventCount) {
         KafkaConsumer<String, T> consumer = new KafkaConsumer<>(consumerProps, new StringDeserializer(),
-            new JsonPojoSerde<T>(type));
+                new JsonPojoSerde<T>(type));
 
         try {
             String topic = Topics.eventTopicName(type);
@@ -214,8 +214,8 @@ public class FootballEcosystem {
         List<T> events = webSocket.readAll(type, expectedEventCount, EVENT_TIMEOUT, TimeUnit.MILLISECONDS);
 
         if (events.size() < expectedEventCount) {
-            throw new RuntimeException("The expected number of WebSocket waitForEvents " + type + " should be: " + expectedEventCount
-                + ", but found: " + events);
+            throw new RuntimeException("The expected number of WebSocket waitForEvents " + type
+                + " should be: " + expectedEventCount + ", but found: " + events);
         }
         return events;
     }
@@ -234,7 +234,7 @@ public class FootballEcosystem {
 
         try {
             HttpStatus status = rest.exchange(connectorRestApiUrl, POST, new HttpEntity<>(json, headers), String.class)
-                .getStatusCode();
+                    .getStatusCode();
 
             if (status != CREATED) {
                 throw new RuntimeException("Unable to create Kafka connector, HTTP status: " + status);
@@ -249,12 +249,12 @@ public class FootballEcosystem {
 
     public void createPlayersTable() {
         postgres.execute("CREATE TABLE IF NOT EXISTS players"
-            + "(id bigint PRIMARY KEY, name varchar(50) NOT NULL, created timestamp NOT NULL)");
+                + "(id bigint PRIMARY KEY, name varchar(50) NOT NULL, created timestamp NOT NULL)");
     }
 
     public void insertPlayer(Integer playerId, String name) {
         postgres.update("INSERT INTO players VALUES (?, ?, ?) ON CONFLICT DO NOTHING",
-            playerId, name, new Timestamp(System.currentTimeMillis()));
+                playerId, name, new Timestamp(System.currentTimeMillis()));
     }
 
     public void executeSql(String sql) {

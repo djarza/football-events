@@ -82,7 +82,7 @@ public class MatchController {
         return Mono.<Event>create(sink -> {
             Match match = findRelatedMatch(matchId);
             Player scorer = playerRepository.find(request.getScorerId()).orElseThrow(
-                () -> new InvalidContentExeption("Player not found", request.getScorerId()));
+                    () -> new InvalidContentExeption("Player not found", request.getScorerId()));
             Event event = new GoalScored(request.getId(), matchId, request.getMinute(), scorer.getId(),
                     match.getHomeTeam().getClubId())
                     .timestamp(request.getReqTimestamp());

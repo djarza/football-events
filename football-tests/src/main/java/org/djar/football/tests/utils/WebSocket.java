@@ -47,28 +47,24 @@ public class WebSocket {
             @Override
             public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
                 for (Subscription subscription : subscriptions.values()) {
-                    subscribe(session, subscription);
+                    subscribeSession(session, subscription);
                 }
             }
 
             @Override
-            public void handleException(StompSession session, StompCommand command, StompHeaders headers, byte[] payload,
-                                        Throwable exception) {
-//                queue.add(() -> {
-                    throw new RuntimeException(exception);
-//                });
+            public void handleException(StompSession session, StompCommand command, StompHeaders headers,
+                    byte[] payload, Throwable exception) {
+                throw new RuntimeException(exception);
             }
 
             @Override
             public void handleTransportError(StompSession session, Throwable exception) {
-//                queue.add(() -> {
-                    throw new RuntimeException(exception);
-//                });
+                throw new RuntimeException(exception);
             }
         });
     }
 
-    private StompSession.Subscription subscribe(StompSession session, Subscription subscription) {
+    private StompSession.Subscription subscribeSession(StompSession session, Subscription subscription) {
         return session.subscribe(subscription.topic, new StompFrameHandler() {
             @Override
             public Type getPayloadType(StompHeaders headers) {
@@ -146,13 +142,16 @@ public class WebSocket {
                     Callable<T> callable = queue.poll(timeout, TimeUnit.MILLISECONDS);
 
                     if (callable == null) {
-
+                        break;
                     }
                     result.add(callable.call());
                     currentTimeout = endTime - System.currentTimeMillis();
                 } while (result.size() < count && currentTimeout > 0);
             } catch (Exception e) {
                 throw new RuntimeException(e);
+            }
+            if (result == null) {
+                throw new RuntimeException("Timeout");
             }
             return result;
         }
