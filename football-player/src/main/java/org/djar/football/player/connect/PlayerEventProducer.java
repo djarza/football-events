@@ -47,7 +47,7 @@ public class PlayerEventProducer {
 
     private void debug(byte[] id, JsonNode json) {
         if (logger.isDebugEnabled()) {
-            logger.debug("Message received from topic {}: {}->{}", CONNECT_PLAYERS_TOPIC, new String(id),
+            logger.debug("Message received from topic {}: {}, schema: {}", CONNECT_PLAYERS_TOPIC, new String(id),
                     json.get("schema").get("name").textValue());
         }
     }

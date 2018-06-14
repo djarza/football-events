@@ -5,7 +5,7 @@ public class NotFoundException extends RuntimeException {
     private Object id;
 
     public NotFoundException(String message, Object id) {
-        super(message);
+        super(message + ": " + id);
         this.id = id;
     }
 
