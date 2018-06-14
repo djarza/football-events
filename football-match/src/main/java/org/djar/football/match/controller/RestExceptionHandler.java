@@ -21,7 +21,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(ex.getMessage(), new HttpHeaders(), HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler({InvalidRequestExeption.class})
+    @ExceptionHandler({InvalidContentExeption.class})
     public ResponseEntity<Object> handleValidation(Exception ex, WebRequest request) {
         logger.error(request.getContextPath(), ex);
         return new ResponseEntity<>(ex.getMessage(), new HttpHeaders(), HttpStatus.UNPROCESSABLE_ENTITY);

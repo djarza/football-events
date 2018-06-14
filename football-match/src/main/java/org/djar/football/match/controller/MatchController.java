@@ -43,7 +43,7 @@ public class MatchController {
     }
 
     @PostMapping("/matches")
-    @ResponseStatus(HttpStatus.CREATED)
+    @ResponseStatus(HttpStatus.ACCEPTED)
     public Mono<Void> scheduleMatch(@RequestBody NewMatchRequest request) {
         Event event = new MatchScheduled(request.getId(), request.getSeasonId(), request.getMatchDate(),
                 request.getHomeClubId(), request.getAwayClubId())
@@ -53,7 +53,7 @@ public class MatchController {
     }
 
     @PatchMapping("/matches/{matchId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @ResponseStatus(HttpStatus.ACCEPTED)
     public Mono<Void> setMatchState(@PathVariable String matchId, @RequestBody MatchStateRequest request) {
         return Mono.<Event>create(sink -> {
             Match.State newState = Match.State.valueOf(request.getNewState());
@@ -77,12 +77,12 @@ public class MatchController {
     }
 
     @PostMapping("/matches/{matchId}/homeGoals")
-    @ResponseStatus(HttpStatus.CREATED)
+    @ResponseStatus(HttpStatus.ACCEPTED)
     public Mono<Void> scoreGoalForHomeTeam(@PathVariable String matchId, @RequestBody GoalRequest request) {
         return Mono.<Event>create(sink -> {
             Match match = findRelatedMatch(matchId);
             Player scorer = playerRepository.find(request.getScorerId()).orElseThrow(
-                    () -> new NotFoundException("Player not found", request.getScorerId()));
+                () -> new InvalidContentExeption("Player not found", request.getScorerId()));
             Event event = new GoalScored(request.getId(), matchId, request.getMinute(), scorer.getId(),
                     match.getHomeTeam().getClubId())
                     .timestamp(request.getReqTimestamp());
@@ -92,12 +92,12 @@ public class MatchController {
     }
 
     @PostMapping("/matches/{matchId}/awayGoals")
-    @ResponseStatus(HttpStatus.CREATED)
+    @ResponseStatus(HttpStatus.ACCEPTED)
     public Mono<Void> scoreGoalForAwayTeam(@PathVariable String matchId, @RequestBody GoalRequest request) {
         return Mono.<Event>create(sink -> {
             Match match = findRelatedMatch(matchId);
             Player scorer = playerRepository.find(request.getScorerId()).orElseThrow(
-                    () -> new NotFoundException("Player not found", request.getScorerId()));
+                    () -> new InvalidContentExeption("Player not found", request.getScorerId()));
             Event event = new GoalScored(request.getId(), matchId, request.getMinute(), scorer.getId(),
                     match.getAwayTeam().getClubId())
                     .timestamp(request.getReqTimestamp());
@@ -107,12 +107,12 @@ public class MatchController {
     }
 
     @PostMapping("/matches/{matchId}/cards")
-    @ResponseStatus(HttpStatus.CREATED)
+    @ResponseStatus(HttpStatus.ACCEPTED)
     public Mono<Void> receiveCard(@PathVariable String matchId, @RequestBody CardRequest request) {
         return Mono.<Event>create(sink -> {
             Match match = findRelatedMatch(matchId);
             Player receiver = playerRepository.find(request.getReceiverId()).orElseThrow(
-                    () -> new NotFoundException("Player not found", request.getReceiverId()));
+                    () -> new InvalidContentExeption("Player not found", request.getReceiverId()));
             Event event = new CardReceived(request.getId(), matchId, request.getMinute(), receiver.getId(),
                     CardReceived.Type.valueOf(request.getType()))
                     .timestamp(request.getReqTimestamp());
@@ -126,8 +126,8 @@ public class MatchController {
                 () -> new NotFoundException("Match not found", matchId));
 
         if (match.getState() != State.STARTED) {
-            throw new InvalidRequestExeption("Match state must be " + State.STARTED + " instead of "
-                    + match.getState());
+            throw new InvalidContentExeption("Match state must be " + State.STARTED + " instead of "
+                    + match.getState(), matchId);
         }
         return match;
     }
