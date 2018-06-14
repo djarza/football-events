@@ -85,6 +85,6 @@ There are only two REST endpoits and both of them are accessed from the outside 
     mvn install -DskipTests
     java -jar target/football-tests-0.0.1-SNAPSHOT-jar-with-dependencies.jar
     ```
-- Launch [http://localhost:18080/](http://localhost:18080/). In a few seconds you should see some statistics updated in real time:
+- Wait a minute and launch [http://localhost:18080/](http://localhost:18080/). In a few seconds you should see some statistics updated in real time:
 
-<img src="docs/screenshot.png" width="100%" height="100%">
+![demo](docs/screenshot.png)
