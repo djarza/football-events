@@ -65,7 +65,9 @@ public class FootballEcosystem {
             .addHealthCheck("http://football-player:18082/actuator/health", "\\{\"status\":\"UP\"\\}")
             .addHealthCheck("http://football-view:18083/actuator/health", "\\{\"status\":\"UP\"\\}")
             .addHealthCheck("http://football-ui:18080/actuator/health", "\\{\"status\":\"UP\"\\}")
-            .addHealthCheck("http://connect:8083/connectors", "\\[.*\\]"); // match any response
+            // create the connector asap, probably before the other services
+            // to avoid the problem of missing records - probably lost in the snapshot
+            .addHealthCheck("http://connect:8083/connectors", "\\[.*\\]", this::connectorCreated);
 
         rest = new RestTemplate(new HttpComponentsClientHttpRequestFactory());
 
@@ -85,13 +87,16 @@ public class FootballEcosystem {
 
         webSocket.connect();
 
+        started = true;
+    }
+
+    private void connectorCreated() {
         // create database and table
         postgres = new JdbcTemplate(new SimpleDriverDataSource(new Driver(),
             "jdbc:postgresql://postgres:5432/postgres", "postgres", "postgres"));
         createPlayersTable();
         createConnector("http://connect:8083/connectors/", "football-connector.json");
-
-        started = true;
+        sleep(2000); // some time to init the connector
     }
 
     public boolean isStarted() {
@@ -109,21 +114,25 @@ public class FootballEcosystem {
         HttpStatus currentStatus;
         long endTime = System.currentTimeMillis() + REST_RETRY_TIMEOUT;
 
+        do {
+            currentStatus = command(url, method, json);
+
+            if (!currentStatus.equals(retryStatus)) {
+                return currentStatus;
+            }
+            logger.trace("Retry status received ({}), trying again...", retryStatus);
+            sleep(500);
+        } while (System.currentTimeMillis() < endTime);
+
+        throw new AssertionError("Response timeout, last status: " + currentStatus);
+    }
+
+    private void sleep(long time) {
         try {
-            do {
-                currentStatus = command(url, method, json);
-
-                if (!currentStatus.equals(retryStatus)) {
-                    return currentStatus;
-                }
-                logger.trace("Retry status received ({}), trying again...", retryStatus);
-                Thread.sleep(500);
-            } while (System.currentTimeMillis() < endTime);
-
-            throw new AssertionError("Response timeout, last status: " + currentStatus);
+            Thread.sleep(time);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupted();
-            return null;
+            throw new RuntimeException(e);
         }
     }
 
@@ -143,22 +152,19 @@ public class FootballEcosystem {
         long timeout = System.currentTimeMillis() + REST_RETRY_TIMEOUT;
         int resultSize = -1;
 
-        try {
-            do {
-                ResponseEntity<String> response = rest.getForEntity(url, String.class);
-                logger.trace(response.getBody());
-                T result = new ObjectMapper().readerFor(responseType).readValue(response.getBody());
-                resultSize = ((Object[]) result).length;
+        do {
+            ResponseEntity<String> response = rest.getForEntity(url, String.class);
+            logger.trace(response.getBody());
+            T result = new ObjectMapper().readerFor(responseType).readValue(response.getBody());
+            resultSize = ((Object[]) result).length;
 
-                if (resultSize == expectedResultCount) {
-                    return result;
-                }
-                logger.trace(resultSize + " items received, trying again...");
-                Thread.sleep(500);
-            } while (System.currentTimeMillis() > timeout);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupted();
-        }
+            if (resultSize == expectedResultCount) {
+                return result;
+            }
+            logger.trace(resultSize + " items received, trying again...");
+            sleep(500);
+        } while (System.currentTimeMillis() > timeout);
+
         throw new AssertionError("Expected items: " + expectedResultCount + ", actual: " + resultSize);
     }
 

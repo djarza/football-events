@@ -2,9 +2,10 @@ package org.djar.football.tests.utils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.LinkedList;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
@@ -23,13 +24,17 @@ public class DockerCompose {
     private static final String UP_COMMAND = "docker-compose up -d";
     private static final String DOWN_COMMAND = "docker-compose down";
 
-    private final Map<String, String> healthCheckUrls = new LinkedHashMap<>();
+    private final Collection<Service> healthChecks = new ArrayList<>();
 
     private boolean createdContainers;
     private boolean startupFailed;
 
     public DockerCompose addHealthCheck(String serviceUrl, String expectedBody) {
-        healthCheckUrls.put(serviceUrl, expectedBody);
+        return addHealthCheck(serviceUrl, expectedBody, null);
+    }
+
+    public DockerCompose addHealthCheck(String serviceUrl, String expectedBody, Runnable action) {
+        healthChecks.add(new Service(serviceUrl, expectedBody, action));
         return this;
     }
 
@@ -64,26 +69,27 @@ public class DockerCompose {
     public void waitUntilServicesAreAvailable(long timeout, TimeUnit unit) {
         long healthCheckTimeout = unit.toMillis(timeout);
         RestTemplate rest = restTemplate(healthCheckTimeout);
-        Map<String, String> urls = new LinkedHashMap<>(healthCheckUrls);
+        Collection<Service> services = new LinkedList<>(healthChecks);
 
         long startTime = System.currentTimeMillis();
         long maxTime = startTime + healthCheckTimeout;
         logger.info("Waiting for services to be ready (with timeout {} s)...", healthCheckTimeout / 1000);
 
         while (true) {
-            for (Iterator<Map.Entry<String, String>> urlIterator = urls.entrySet().iterator(); urlIterator.hasNext();) {
-                Map.Entry<String, String> entry = urlIterator.next();
+            for (Iterator<Service> serviceIterator = services.iterator(); serviceIterator.hasNext();) {
+                Service service = serviceIterator.next();
 
-                if (serviceAvailable(rest, entry.getKey(), entry.getValue())) {
-                    urlIterator.remove();
+                if (serviceAvailable(rest, service.url, service.requiredResponse)) {
+                    serviceIterator.remove();
+                    service.action();
                     continue;
                 }
                 if (System.currentTimeMillis() > maxTime) {
                     startupFailed = true;
-                    throw new RuntimeException("Timeout waiting for services. No response from: " + urls.keySet());
+                    throw new RuntimeException("Timeout waiting for services. No response from: " + services);
                 }
             }
-            if (urls.isEmpty()) {
+            if (services.isEmpty()) {
                 break;
             }
             sleep(1000);
@@ -143,5 +149,29 @@ public class DockerCompose {
         String output = outputStream.toString();
         logger.debug(System.lineSeparator() + output);
         return output;
+    }
+
+    private class Service {
+
+        private String url;
+        private String requiredResponse;
+        private Runnable action;
+
+        public Service(String url, String requiredResponse, Runnable action) {
+            this.url = url;
+            this.requiredResponse = requiredResponse;
+            this.action = action;
+        }
+
+        public void action() {
+            if (action != null) {
+                action.run();
+            }
+        }
+
+        @Override
+        public String toString() {
+            return url;
+        }
     }
 }

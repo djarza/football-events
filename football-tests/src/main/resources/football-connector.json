@@ -11,6 +11,7 @@
     "database.server.name": "fb-connect",
     "table.whitelist": "public.players",
     "database.history.kafka.bootstrap.servers": "kafka:9092",
-    "database.history.kafka.topic": "fb-connect.schema-changes"
+    "database.history.kafka.topic": "fb-connect.schema-changes",
+    "snapshot.mode": "never"
   }
 }
