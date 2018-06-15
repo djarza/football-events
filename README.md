@@ -8,7 +8,7 @@ This is an application that generates a simple football statistics like match sc
 
 ![architecture](docs/architecture.png)
 
-You can think of this application as a supplement to the basic code examples of Kafka Streams. Kafka Streams is used here for many purposes like aggregation, building materialized views, persisting the domain model or just exposing the output of services. Furthermore, there is no traditional database, local state stores instead (PostgreSQL plays a role of legacy system only).
+You can think of this application as a supplement to the basic code examples of Kafka Streams. Kafka Streams is used here extensively for many purposes like data processing, building materialized views, persisting the domain model and exposing the output of services. Furthermore, there is no traditional database, local state stores instead (PostgreSQL plays a role of legacy system only).
 
 This codebase is trying to apply the idea of [stateful streams processing](https://docs.confluent.io/current/streams/concepts.html#stateful-stream-processing) with [Kafka](https://kafka.apache.org/) and [Kafka Streams](https://kafka.apache.org/documentation/streams/). These blog posts are a great introduction to that concept:
 - [The Data Dichotomy: Rethinking the Way We Treat Data and Services](https://www.confluent.io/blog/data-dichotomy-rethinking-the-way-we-treat-data-and-services/)
@@ -22,10 +22,10 @@ This codebase is trying to apply the idea of [stateful streams processing](https
 - __zookeeper__,
 - __postgres__ - in the role of an external data source,
 - __[football-match](football-match/)__ - REST requests transformation into [events](football-common/src/main/java/org/djar/football/model/event/), input validation with the [domain model](https://github.com/djarza/football-events/tree/master/football-match/src/main/java/org/djar/football/match/domain),
-- __connect__ - Kafka Connect with [Debezium PostgreSQL connector](http://debezium.io/docs/connectors/postgresql/), database changes detection,
+- __connect__ - Kafka Connect with [Debezium PostgreSQL connector](http://debezium.io/docs/connectors/postgresql/), writes events for insert or update operations on PLAYERS table to a single Kafka topic,
 - __[football-player](football-player/)__ is receiving notifications from __connect__ service and creating only a single [PlayerStartedCareer event](football-common/src/main/java/org/djar/football/model/event/PlayerStartedCareer.java) using [Processor API](https://kafka.apache.org/11/documentation/streams/developer-guide/processor-api.html) (see the [code](football-player/src/main/java/org/djar/football/player/snapshot/DomainUpdater.java)),
 - __[football-view](football-view/)__ - builds the statistics from the events using [Kafka Streams DSL](https://kafka.apache.org/11/documentation/streams/developer-guide/dsl-api.html), it's the main place where streams are created and processed (see [below](#events-and-streams)),
-- __[football-ui](football-ui/)__ - saves the statistics into materialized views (local state stores) and exposes via [REST API](football-ui/src/main/java/org/djar/football/ui/controller/StatisticsController.java).
+- __[football-ui](football-ui/)__ - saves the statistics into materialized views (local state stores), exposes them via [REST API](football-ui/src/main/java/org/djar/football/ui/controller/StatisticsController.java) and publishes using [WebSocket](football-ui/src/main/java/org/djar/football/ui/StatisticsKeeper.java).
 
 Additional modules:
 - __[football-common](football-common/)__ - contains some code that is shared among microservices (obviously it's not a good practice for production), especially:
@@ -34,28 +34,40 @@ Additional modules:
 - __[football-tests](football-tests/)__ - demo application and integration tests.
 
 
-## Events and streams
+## Events and Streams
 
 Each [event](football-common/src/main/java/org/djar/football/model/event/) represents a state change that occurred to the system.
 
 | Event               | Fields                                                 |
 | ------------------- | ------------------------------------------------------ |
-| MatchScheduled      | match id, season, home club, away club, matchDate           |
+| MatchScheduled      | match id, season, home club, away club, matchDate      |
 | MatchStarted        | match id, home club, away club                         |
 | GoalScored          | goal id, match id, minute, scorer, scored for          |
 | CardReceived        | card id, match id, minute, receiver, type (yellow/red) |
 | MatchFinished       | match id                                               |
 | PlayerStartedCareer | palyer id, name                                        |
 
-These events are the source for stream processing. For example, in order to determine the result of a match, you must join MatchStarted and GoalScored streams and then count the goals (see the [code](football-view/src/main/java/org/djar/football/view/projection/StatisticsBuilder.java)).
+These events are the source for stream processing. For example, in order to determine the result of a match, you must join MatchStarted and GoalScored streams and then count the goals (see the [code](football-view/src/main/java/org/djar/football/view/StatisticsBuilder.java)).
 
 
-## Kafka topics
+## Domain Model
+
+![model](docs/model.png)
+
+
+## Kafka Topics
+
+Topics are organized under logical groups as follows:
+- __fb-event.*__ - containing events generated by [football-match](football-match/) and [football-player](football-player/)
+- __fb-view.*__ - statistics produced by [football-view](football-view/)
+- __fb-connect.*__ - events from the PostgreSQL connector
+
+The prefixes above aim to separate the application topics from the internal Kafka Streams and Debezium topics.
 
 ![topics](docs/topics.png)
 
 
-## REST endpoints
+## REST Endpoints
 
 There are only two REST endpoits and both of them are accessed from the outside of the system:
 - [Query interface](football-ui/src/main/java/org/djar/football/ui/controller/StatisticsController.java) in __football-ui__,
@@ -64,7 +76,7 @@ There are only two REST endpoits and both of them are accessed from the outside 
 
 ## How to run
 
-- Add kafka bootstrap address to your /etc/hosts:
+1. Add kafka bootstrap address to your `/etc/hosts`:
     ```
     127.0.0.1 kafka
     127.0.0.1 postgres
@@ -74,18 +86,20 @@ There are only two REST endpoits and both of them are accessed from the outside 
     127.0.0.1 football-view
     127.0.0.1 football-ui
     ```
-- Build microservices and Docker containers:
+2. Build microservices and Docker containers:
     ```
     cd football
     mvn install
     ```
-- Build and run the demo application:
+3. Build and run the demo application:
     ```
     cd football-tests
     mvn install -DskipTests
     java -jar target/football-tests-0.0.1-SNAPSHOT-jar-with-dependencies.jar
     ```
-- Wait a minute and launch [http://localhost:18080/](http://localhost:18080/). In a few seconds you should see some statistics updated in real time:
+    It will start Docker containers and wait until all microservices are ready.
+    
+4. Wait a minute and launch [http://football-ui:18080/](http://football-ui:18080/). In a few seconds you should see some statistics updated in real time:
 
 ![demo](docs/demo.gif)
 
