@@ -4,9 +4,8 @@ import static java.time.LocalDateTime.now;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.HttpMethod.PATCH;
 import static org.springframework.http.HttpMethod.POST;
-import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.ACCEPTED;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
-import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
 
 import java.util.Arrays;
@@ -62,13 +61,13 @@ public class BasicIntegrationTest {
         assertThat(fbApp.command("http://football-match:18081/command/matches",
             POST, "{\"id\":\"m1\", \"seasonId\":\"s1\", \"matchDate\":\"2018-05-26T15:00:00\"," +
                 "\"homeClubId\":\"Man Utd\", \"awayClubId\":\"Liverpool\", \"reqTimestamp\":\"" + now() + "\"}"))
-                .isEqualTo(CREATED);
+                .isEqualTo(ACCEPTED);
         // the request is processed asynchronously, so wait for the right waitForEvent before the next step
         assertThat(fbApp.waitForEvent(MatchScheduled.class).getAggId()).isEqualTo("m1");
 
         // change match status from SCHEDULED to STARTED
         assertThat(fbApp.command("http://football-match:18081/command/matches/m1",
-            PATCH, "{\"newState\":\"STARTED\", \"reqTimestamp\":\"" + now() + "\"}", NOT_FOUND)).isEqualTo(NO_CONTENT);
+            PATCH, "{\"newState\":\"STARTED\", \"reqTimestamp\":\"" + now() + "\"}", NOT_FOUND)).isEqualTo(ACCEPTED);
         // waitForEvent and the initial score 0:0
         assertThat(fbApp.waitForEvent(MatchStarted.class).getAggId()).isEqualTo("m1");
         assertThat(fbApp.waitForWebSocketEvent(MatchScore.class).getHomeGoals()).isEqualTo(0);
@@ -78,7 +77,7 @@ public class BasicIntegrationTest {
         // finish the match
         assertThat(fbApp.command("http://football-match:18081/command/matches/m1",
             PATCH, "{\"newState\":\"FINISHED\", \"reqTimestamp\":\"" + now() + "\"}"))
-                .isEqualTo(NO_CONTENT);
+                .isEqualTo(ACCEPTED);
         assertThat(fbApp.waitForEvent(MatchFinished.class).getAggId()).isEqualTo("m1");
         fbApp.waitForWebSocketEvent(TeamRanking.class, 2);
 
@@ -89,33 +88,33 @@ public class BasicIntegrationTest {
         // some goals and cards during the match
         assertThat(fbApp.command("http://football-match:18081/command/matches/m1/homeGoals",
             POST, "{\"id\":\"g1\", \"minute\":20, \"scorerId\":\"101\", \"reqTimestamp\":\""
-                + now() + "\"}", UNPROCESSABLE_ENTITY)).isEqualTo(CREATED);
+                + now() + "\"}", UNPROCESSABLE_ENTITY)).isEqualTo(ACCEPTED);
         assertThat(fbApp.waitForEvent(GoalScored.class).getAggId()).isEqualTo("m1");
         assertThat(fbApp.waitForWebSocketEvent(MatchScore.class).getHomeGoals()).isEqualTo(1);
         assertThat(fbApp.waitForWebSocketEvent(PlayerStatistic.class).getGoals()).isEqualTo(1);
 
         assertThat(fbApp.command("http://football-match:18081/command/matches/m1/awayGoals",
             POST, "{\"id\":\"g2\", \"minute\":30, \"scorerId\":\"102\", \"reqTimestamp\":\""
-                + now() + "\"}")).isEqualTo(CREATED);
+                + now() + "\"}")).isEqualTo(ACCEPTED);
         assertThat(fbApp.waitForEvent(GoalScored.class).getAggId()).isEqualTo("m1");
         assertThat(fbApp.waitForWebSocketEvent(MatchScore.class).getAwayGoals()).isEqualTo(1);
         assertThat(fbApp.waitForWebSocketEvent(PlayerStatistic.class).getGoals()).isEqualTo(1);
 
         assertThat(fbApp.command("http://football-match:18081/command/matches/m1/cards",
             POST, "{\"id\":\"c1\", \"minute\":40, \"receiverId\":\"102\", \"type\":\"YELLOW\", \"reqTimestamp\":\""
-                + now() + "\"}")).isEqualTo(CREATED);
+                + now() + "\"}")).isEqualTo(ACCEPTED);
         assertThat(fbApp.waitForEvent(CardReceived.class).getMatchId()).isEqualTo("m1");
         assertThat(fbApp.waitForWebSocketEvent(PlayerStatistic.class).getYellowCards()).isEqualTo(1);
 
         assertThat(fbApp.command("http://football-match:18081/command/matches/m1/cards",
             POST, "{\"id\":\"c1\", \"minute\":40, \"receiverId\":\"103\", \"type\":\"RED\", \"reqTimestamp\":\""
-                + now() + "\"}")).isEqualTo(CREATED);
+                + now() + "\"}")).isEqualTo(ACCEPTED);
         assertThat(fbApp.waitForEvent(CardReceived.class).getAggId()).isEqualTo("m1");
         assertThat(fbApp.waitForWebSocketEvent(PlayerStatistic.class).getRedCards()).isEqualTo(1);
 
         assertThat(fbApp.command("http://football-match:18081/command/matches/m1/homeGoals",
             POST, "{\"id\":\"g3\", \"minute\":50, \"scorerId\":\"101\", \"reqTimestamp\":\""
-                + now() + "\"}")).isEqualTo(CREATED);
+                + now() + "\"}")).isEqualTo(ACCEPTED);
         assertThat(fbApp.waitForEvent(GoalScored.class).getAggId()).isEqualTo("m1");
         assertThat(fbApp.waitForWebSocketEvent(MatchScore.class).getHomeGoals()).isEqualTo(2);
         assertThat(fbApp.waitForWebSocketEvent(PlayerStatistic.class).getGoals()).isEqualTo(2);
@@ -171,7 +170,7 @@ public class BasicIntegrationTest {
         assertThat(fbApp.command("http://football-match:18081/command/matches",
             POST, "{\"id\":\"NOT_STARTED_MATCH\", \"seasonId\":\"s1\", \"matchDate\":\"2018-05-26T15:00:00\"," +
                 "\"homeClubId\":\"Man City\", \"awayClubId\":\"Chelsea\", \"reqTimestamp\":\"" + now() + "\"}"))
-                .isEqualTo(CREATED);
+                .isEqualTo(ACCEPTED);
 
         assertThat(fbApp.waitForEvent(MatchScheduled.class).getAggId()).isEqualTo("NOT_STARTED_MATCH");
 
