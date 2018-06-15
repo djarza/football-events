@@ -5,7 +5,6 @@ import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
 import org.djar.football.stream.KafkaStreamsStarter;
 import org.djar.football.util.MicroserviceUtils;
-import org.djar.football.view.projection.StatisticsBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;

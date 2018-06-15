@@ -8,7 +8,6 @@ import org.djar.football.model.view.PlayerStatistic;
 import org.djar.football.model.view.TeamRanking;
 import org.djar.football.repo.StateStoreRepository;
 import org.djar.football.stream.KafkaStreamsStarter;
-import org.djar.football.ui.projection.StatisticsPublisher;
 import org.djar.football.util.MicroserviceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +41,7 @@ public class UiApplication {
     @Bean
     public KafkaStreams kafkaStreams() {
         StreamsBuilder streamsBuilder = new StreamsBuilder();
-        StatisticsPublisher statisticsBuilder = new StatisticsPublisher(streamsBuilder, stomp);
+        StatisticsKeeper statisticsBuilder = new StatisticsKeeper(streamsBuilder, stomp);
         statisticsBuilder.build();
         Topology topology = streamsBuilder.build();
         KafkaStreamsStarter starter = new KafkaStreamsStarter(kafkaBootstrapAddress, topology, APP_ID);
@@ -53,17 +52,17 @@ public class UiApplication {
 
     @Bean
     public StateStoreRepository<MatchScore> matchScoresRepo() {
-        return new StateStoreRepository<>(kafkaStreams(), StatisticsPublisher.MATCH_SCORES_STORE);
+        return new StateStoreRepository<>(kafkaStreams(), StatisticsKeeper.MATCH_SCORES_STORE);
     }
 
     @Bean
     public StateStoreRepository<TeamRanking> teamRankingRepo() {
-        return new StateStoreRepository<>(kafkaStreams(), StatisticsPublisher.TEAM_RANKING_STORE);
+        return new StateStoreRepository<>(kafkaStreams(), StatisticsKeeper.TEAM_RANKING_STORE);
     }
 
     @Bean
     public StateStoreRepository<PlayerStatistic> playerStatisticRepo() {
-        return new StateStoreRepository<>(kafkaStreams(), StatisticsPublisher.PLAYER_STATISTIC_STORE);
+        return new StateStoreRepository<>(kafkaStreams(), StatisticsKeeper.PLAYER_STATISTIC_STORE);
     }
 
     public static void main(String[] args) {

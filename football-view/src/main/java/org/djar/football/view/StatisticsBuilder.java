@@ -1,4 +1,4 @@
-package org.djar.football.view.projection;
+package org.djar.football.view;
 
 import static org.apache.kafka.common.serialization.Serdes.String;
 import static org.apache.kafka.streams.Consumed.with;

@@ -1,9 +1,9 @@
-package org.djar.football.view.projection;
+package org.djar.football.view;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.djar.football.view.projection.StatisticsBuilder.MATCH_SCORES_STORE;
-import static org.djar.football.view.projection.StatisticsBuilder.PLAYER_STATISTIC_STORE;
-import static org.djar.football.view.projection.StatisticsBuilder.RANKING_STORE;
+import static org.djar.football.view.StatisticsBuilder.MATCH_SCORES_STORE;
+import static org.djar.football.view.StatisticsBuilder.PLAYER_STATISTIC_STORE;
+import static org.djar.football.view.StatisticsBuilder.RANKING_STORE;
 
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
@@ -17,6 +17,7 @@ import org.djar.football.model.view.MatchScore;
 import org.djar.football.model.view.PlayerStatistic;
 import org.djar.football.model.view.TeamRanking;
 import org.djar.football.test.StreamsTester;
+import org.djar.football.view.StatisticsBuilder;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
