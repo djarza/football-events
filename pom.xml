@@ -14,7 +14,8 @@
         <module>football-common</module>
         <module>football-match</module>
         <module>football-player</module>
-        <module>football-view</module>
+        <module>football-view-basic</module>
+        <module>football-view-top</module>
         <module>football-ui</module>
     </modules>
 

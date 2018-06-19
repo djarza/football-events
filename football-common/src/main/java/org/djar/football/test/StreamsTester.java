@@ -13,6 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.function.Function;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.Deserializer;
@@ -28,6 +29,7 @@ import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
 import org.apache.kafka.streams.test.ConsumerRecordFactory;
 import org.djar.football.model.event.Event;
+import org.djar.football.model.view.PlayerGoals;
 import org.djar.football.stream.JsonPojoSerde;
 import org.djar.football.util.Topics;
 import org.springframework.util.FileSystemUtils;
@@ -61,17 +63,30 @@ public class StreamsTester {
     }
 
     public <T extends Event> void sendEvents(URL sourceFile, Class<T> eventType) {
-        sendEvents(load(sourceFile, eventType));
+        send(load(sourceFile, eventType));
     }
 
-    public void sendEvents(Event[] events) {
-        ConsumerRecordFactory<String, Event> factory = new ConsumerRecordFactory<>(
-                new StringSerializer(), new JsonPojoSerde<Event>());
-        int eventSeq = 1;
+    public <T> void send(URL sourceFile, Class<T> messageType, String topic, Function<T, String> key) {
+        send(load(sourceFile, messageType), topic, key);
+    }
+
+    private void send(Event[] events) {
+        ConsumerRecordFactory<String, Object> factory = new ConsumerRecordFactory<>(
+                new StringSerializer(), new JsonPojoSerde<>());
 
         for (Event event : events) {
             String topic = Topics.eventTopicName(event.getClass());
             ConsumerRecord<byte[], byte[]> record = factory.create(topic, event.getAggId(), event);
+            testDriver.pipeInput(record);
+        }
+    }
+
+    private <T> void send(T[] messages, String topic, Function<T, String> key) {
+        ConsumerRecordFactory<String, Object> factory = new ConsumerRecordFactory<>(
+                new StringSerializer(), new JsonPojoSerde<>());
+
+        for (T message : messages) {
+            ConsumerRecord<byte[], byte[]> record = factory.create(topic, key.apply(message), message);
             testDriver.pipeInput(record);
         }
     }

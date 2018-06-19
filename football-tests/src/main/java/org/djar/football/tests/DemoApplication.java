@@ -171,7 +171,7 @@ public class DemoApplication {
         logger.info("*************************************************");
 
         DemoApplication gen = new DemoApplication(fbApp);
-        gen.generateFrom("EFL-Championship-2015-2018.txt");
+        gen.generateFrom("EFL-Championship-2017-2018.txt");
 
         // shutdown only if no exception
         fbApp.shutdown();

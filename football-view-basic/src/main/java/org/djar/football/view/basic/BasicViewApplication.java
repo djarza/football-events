@@ -1,4 +1,4 @@
-package org.djar.football.view;
+package org.djar.football.view.basic;
 
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -13,11 +13,11 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication
-public class ViewApplication {
+public class BasicViewApplication {
 
-    private static final Logger logger = LoggerFactory.getLogger(ViewApplication.class);
+    private static final Logger logger = LoggerFactory.getLogger(BasicViewApplication.class);
 
-    private static final String APP_ID = MicroserviceUtils.applicationId(ViewApplication.class);
+    private static final String APP_ID = MicroserviceUtils.applicationId(BasicViewApplication.class);
 
     @Value("${kafka.bootstrapAddress}")
     private String kafkaBootstrapAddress;
@@ -41,6 +41,6 @@ public class ViewApplication {
 
     public static void main(String[] args) {
         logger.info("Application ID: {}", APP_ID);
-        SpringApplication.run(ViewApplication.class, args);
+        SpringApplication.run(BasicViewApplication.class, args);
     }
 }

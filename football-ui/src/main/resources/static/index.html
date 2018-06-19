@@ -41,12 +41,12 @@
                 onUpdate(matchScore.matchId, text, 'MatchScore', 30);
             });
             stompClient.subscribe('/topic/TeamRanking', function(payload) {
-                var teamRanking = JSON.parse(payload.body);
-                var text = document.createTextNode(teamRanking.clubId + ' ' + teamRanking.matchesPlayed + ' '
-                    + teamRanking.won + ' ' + teamRanking.drawn + ' ' + teamRanking.lose + ' '
-                    + teamRanking.goalsFor + ' ' + teamRanking.goalsAgainst + ' '
-                    /* + teamRanking.goalsDifference + ' ' + teamRanking.points */);
-                onUpdate(teamRanking.clubId, text, 'TeamRanking', 1000);
+                var team = JSON.parse(payload.body);
+                var text = document.createTextNode(team.clubId + ' ' + team.matchesPlayed + ' '
+                    + team.won + ' ' + team.drawn + ' ' + team.lose + ' '
+                    + team.goalsFor + ' ' + team.goalsAgainst + ' '
+                     + (team.goalsFor - team.goalsAgainst) + ' ' + (team.won * 3 + team.drawn));
+                onUpdate(team.clubId, text, 'TeamRanking', 1000);
             });
             stompClient.subscribe('/topic/PlayerCards', function(payload) {
                 var playerCards = JSON.parse(payload.body);
@@ -59,13 +59,6 @@
                 onUpdateTopPlayers(top10.players, 'TopPlayers');
             });
         });
-    }
-
-    function sendMessage() {
-        var from = document.getElementById('from').value;
-        var text = document.getElementById('text').value;
-        stompClient.send('/app/dashboard', {},
-          JSON.stringify({'from':from, 'text':text}));
     }
 
     function onUpdate(id, statText, type, limit) {
@@ -115,15 +108,15 @@
         <div id="MatchScore"></div>
     </div>
     <div class="column">
-        <h3>Teams</h3>
-        <div id="TeamRanking"></div>
-    </div>
-    <div class="column">
         <h3>Top 10 Scorers</h3>
         <div id="TopPlayers"></div>
     </div>
     <div class="column">
-        <h3>Cards</h3>
+        <h3>Teams [GP W D L F A GD Pts]</h3>
+        <div id="TeamRanking"></div>
+    </div>
+    <div class="column">
+        <h3>Cards [Yellow Red]</h3>
         <div id="PlayerCards"></div>
     </div>
 </div>

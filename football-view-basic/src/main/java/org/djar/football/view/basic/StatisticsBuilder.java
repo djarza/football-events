@@ -1,4 +1,4 @@
-package org.djar.football.view;
+package org.djar.football.view.basic;
 
 import static org.apache.kafka.common.serialization.Serdes.String;
 import static org.apache.kafka.streams.Consumed.with;
@@ -6,9 +6,8 @@ import static org.apache.kafka.streams.KeyValue.pair;
 import static org.apache.kafka.streams.kstream.Joined.with;
 import static org.djar.football.stream.StreamsUtils.materialized;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedList;
-import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.JoinWindows;
@@ -25,7 +24,6 @@ import org.djar.football.model.view.MatchScore;
 import org.djar.football.model.view.PlayerCards;
 import org.djar.football.model.view.PlayerGoals;
 import org.djar.football.model.view.TeamRanking;
-import org.djar.football.model.view.TopPlayers;
 import org.djar.football.stream.JsonPojoSerde;
 import org.djar.football.util.Topics;
 
@@ -45,13 +43,11 @@ public class StatisticsBuilder {
     public static final String TEAM_RANKING_STORE = "team_ranking_store";
     public static final String PLAYER_GOALS_STORE = "player_goals_store";
     public static final String PLAYER_CARDS_STORE = "player_cards_store";
-    public static final String TOP_SCORERS_STORE = "top_scorers_store";
 
     public static final String TEAM_RANKING_TOPIC = Topics.viewTopicName(TeamRanking.class);
     public static final String MATCH_SCORES_TOPIC = Topics.viewTopicName(MatchScore.class);
     public static final String PLAYER_GOALS_TOPIC = Topics.viewTopicName(PlayerGoals.class);
     public static final String PLAYER_CARDS_TOPIC = Topics.viewTopicName(PlayerCards.class);
-    public static final String TOP_SCORERS_TOPIC = Topics.viewTopicName(TopPlayers.class);
 
     private final JsonPojoSerde<MatchStarted> matchStartedSerde = new JsonPojoSerde<>(MatchStarted.class);
     private final JsonPojoSerde<MatchFinished> matchFinishedSerde = new JsonPojoSerde<>(MatchFinished.class);
@@ -62,7 +58,6 @@ public class StatisticsBuilder {
     private final JsonPojoSerde<TeamRanking> rankingSerde = new JsonPojoSerde<>(TeamRanking.class);
     private final JsonPojoSerde<PlayerGoals> playerGoalsSerde = new JsonPojoSerde<>(PlayerGoals.class);
     private final JsonPojoSerde<PlayerCards> playerCardsSerde = new JsonPojoSerde<>(PlayerCards.class);
-    private final JsonPojoSerde<TopPlayers> top10Serde = new JsonPojoSerde<>(TopPlayers.class);
 
     private final StreamsBuilder builder;
 
@@ -123,7 +118,7 @@ public class StatisticsBuilder {
         // new key: clubId
         KStream<String, TeamRanking> rankingStream = finalScoreStream
                 .flatMap((clubId, matchScore) -> {
-                    Collection<KeyValue<String, TeamRanking>> result = new LinkedList<>();
+                    Collection<KeyValue<String, TeamRanking>> result = new ArrayList<>(2);
                     result.add(pair(matchScore.getHomeClubId(), matchScore.homeRanking()));
                     result.add(pair(matchScore.getAwayClubId(), matchScore.awayRanking()));
                     return result;
@@ -161,17 +156,5 @@ public class StatisticsBuilder {
 
         KStream<String, PlayerGoals> playerGoalsStream = playerGoalsTable.toStream();
         playerGoalsStream.to(PLAYER_GOALS_TOPIC, Produced.with(String(), playerGoalsSerde));
-
-        buildTop10Scorers(playerGoalsStream);
-    }
-
-    private void buildTop10Scorers(KStream<String, PlayerGoals> playerGoalsStream) {
-        KTable<String, TopPlayers> top10Table = playerGoalsStream
-                // create a single record that includes the top scorers
-                .groupBy((playerId, playerGoals) -> "top10Scorers", Serialized.with(Serdes.String(), playerGoalsSerde))
-                .aggregate(() -> new TopPlayers(10), (playerId, playerStat, top10) -> top10.aggregate(playerStat),
-                    materialized(TOP_SCORERS_STORE, top10Serde));
-
-        top10Table.toStream().to(TOP_SCORERS_TOPIC, Produced.with(String(), top10Serde));
     }
 }

@@ -1,11 +1,10 @@
-package org.djar.football.view;
+package org.djar.football.view.basic;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.djar.football.view.StatisticsBuilder.MATCH_SCORES_STORE;
-import static org.djar.football.view.StatisticsBuilder.PLAYER_CARDS_STORE;
-import static org.djar.football.view.StatisticsBuilder.PLAYER_GOALS_STORE;
-import static org.djar.football.view.StatisticsBuilder.TEAM_RANKING_STORE;
-import static org.djar.football.view.StatisticsBuilder.TOP_SCORERS_STORE;
+import static org.djar.football.view.basic.StatisticsBuilder.MATCH_SCORES_STORE;
+import static org.djar.football.view.basic.StatisticsBuilder.PLAYER_CARDS_STORE;
+import static org.djar.football.view.basic.StatisticsBuilder.PLAYER_GOALS_STORE;
+import static org.djar.football.view.basic.StatisticsBuilder.TEAM_RANKING_STORE;
 
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
@@ -19,7 +18,6 @@ import org.djar.football.model.view.MatchScore;
 import org.djar.football.model.view.PlayerCards;
 import org.djar.football.model.view.PlayerGoals;
 import org.djar.football.model.view.TeamRanking;
-import org.djar.football.model.view.TopPlayers;
 import org.djar.football.test.StreamsTester;
 import org.junit.After;
 import org.junit.Before;
@@ -28,16 +26,13 @@ import org.junit.Test;
 public class StatisticsBuilderTest {
 
     private StreamsTester tester;
-    private StatisticsBuilder stats;
 
     @Before
     public void setUp() {
         tester = new StreamsTester(getClass().getName());
 
         StreamsBuilder streamsBuilder = new StreamsBuilder();
-
-        stats = new StatisticsBuilder(streamsBuilder);
-        stats.build();
+        new StatisticsBuilder(streamsBuilder).build();
 
         Topology topology = streamsBuilder.build();
         tester.setUp(topology);
@@ -106,13 +101,6 @@ public class StatisticsBuilderTest {
         assertThat(dDarylMurphyGoals.getGoals()).isEqualTo(1);
         assertThat(dDarylMurphyCards.getYellowCards()).isEqualTo(0);
         assertThat(dDarylMurphyCards.getRedCards()).isEqualTo(1);
-
-        ReadOnlyKeyValueStore<String, TopPlayers> top10Store = tester.getStore(TOP_SCORERS_STORE);
-        TopPlayers top10Scorers = top10Store.get("top10Scorers");
-        assertThat(top10Scorers.getPlayers().size()).isEqualTo(10);
-        assertThat(top10Scorers.getPlayers().get(0).getGoals()).isEqualTo(3);
-        assertThat(top10Scorers.getPlayers().get(1).getGoals()).isEqualTo(3);
-        assertThat(top10Scorers.getPlayers().get(2).getGoals()).isEqualTo(2);
     }
 
     @After

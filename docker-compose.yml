@@ -78,14 +78,23 @@ services:
     build: football-player/
     image: football-player:latest
 
-  football-view:
-    container_name: football-view
+  football-view-basic:
+    container_name: football-view-basic
     ports:
       - 18083:18083
     depends_on:
       - kafka
-    build: football-view/
-    image: football-view:latest
+    build: football-view-basic/
+    image: football-view-basic:latest
+
+  football-view-top:
+    container_name: football-view-top
+    ports:
+      - 18084:18084
+    depends_on:
+      - kafka
+    build: football-view-top/
+    image: football-view-top:latest
 
   football-ui:
     container_name: football-ui
