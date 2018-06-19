@@ -8,6 +8,7 @@ import static org.djar.football.stream.StreamsUtils.materialized;
 
 import java.util.Collection;
 import java.util.LinkedList;
+import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.JoinWindows;
@@ -21,8 +22,10 @@ import org.djar.football.model.event.MatchFinished;
 import org.djar.football.model.event.MatchStarted;
 import org.djar.football.model.event.PlayerStartedCareer;
 import org.djar.football.model.view.MatchScore;
-import org.djar.football.model.view.PlayerStatistic;
+import org.djar.football.model.view.PlayerCards;
+import org.djar.football.model.view.PlayerGoals;
 import org.djar.football.model.view.TeamRanking;
+import org.djar.football.model.view.TopPlayers;
 import org.djar.football.stream.JsonPojoSerde;
 import org.djar.football.util.Topics;
 
@@ -39,12 +42,16 @@ public class StatisticsBuilder {
     private static final String CARD_RECEIVED_TOPIC = Topics.eventTopicName(CardReceived.class);
 
     public static final String MATCH_SCORES_STORE = "match_scores_store";
-    public static final String RANKING_STORE = "team_ranking_store";
-    public static final String PLAYER_STATISTIC_STORE = "player_statistic_store";
+    public static final String TEAM_RANKING_STORE = "team_ranking_store";
+    public static final String PLAYER_GOALS_STORE = "player_goals_store";
+    public static final String PLAYER_CARDS_STORE = "player_cards_store";
+    public static final String TOP_SCORERS_STORE = "top_scorers_store";
 
     public static final String TEAM_RANKING_TOPIC = Topics.viewTopicName(TeamRanking.class);
     public static final String MATCH_SCORES_TOPIC = Topics.viewTopicName(MatchScore.class);
-    public static final String PLAYER_STATISTIC_TOPIC = Topics.viewTopicName(PlayerStatistic.class);
+    public static final String PLAYER_GOALS_TOPIC = Topics.viewTopicName(PlayerGoals.class);
+    public static final String PLAYER_CARDS_TOPIC = Topics.viewTopicName(PlayerCards.class);
+    public static final String TOP_SCORERS_TOPIC = Topics.viewTopicName(TopPlayers.class);
 
     private final JsonPojoSerde<MatchStarted> matchStartedSerde = new JsonPojoSerde<>(MatchStarted.class);
     private final JsonPojoSerde<MatchFinished> matchFinishedSerde = new JsonPojoSerde<>(MatchFinished.class);
@@ -53,7 +60,9 @@ public class StatisticsBuilder {
     private final JsonPojoSerde<PlayerStartedCareer> playerSerde = new JsonPojoSerde<>(PlayerStartedCareer.class);
     private final JsonPojoSerde<MatchScore> matchScoreSerde = new JsonPojoSerde<>(MatchScore.class);
     private final JsonPojoSerde<TeamRanking> rankingSerde = new JsonPojoSerde<>(TeamRanking.class);
-    private final JsonPojoSerde<PlayerStatistic> statsSerde = new JsonPojoSerde<>(PlayerStatistic.class);
+    private final JsonPojoSerde<PlayerGoals> playerGoalsSerde = new JsonPojoSerde<>(PlayerGoals.class);
+    private final JsonPojoSerde<PlayerCards> playerCardsSerde = new JsonPojoSerde<>(PlayerCards.class);
+    private final JsonPojoSerde<TopPlayers> top10Serde = new JsonPojoSerde<>(TopPlayers.class);
 
     private final StreamsBuilder builder;
 
@@ -122,38 +131,47 @@ public class StatisticsBuilder {
 
         KTable<String, TeamRanking> rankingTable = rankingStream
                 .groupByKey(Serialized.with(String(), rankingSerde))
-                .reduce(TeamRanking::aggregate, materialized(RANKING_STORE, rankingSerde));
+                .reduce(TeamRanking::aggregate, materialized(TEAM_RANKING_STORE, rankingSerde));
 
         // publish changes to a view topic
         rankingTable.toStream().to(TEAM_RANKING_TOPIC, Produced.with(String(), rankingSerde));
     }
 
     private void buildPlayerStatistics(KStream<String, GoalScored> goalStream) {
-        KStream<String, CardReceived> cardStream = builder
-                .stream(CARD_RECEIVED_TOPIC, with(String(), cardReceivedSerde))
-                .selectKey((matchId, card) -> card.getReceiverId());
-
         KTable<String, PlayerStartedCareer> playerTable = builder
                 .table(PLAYER_STARTED_TOPIC, with(String(), playerSerde));
 
-        KTable<String, PlayerStatistic> goalPlayerTable = goalStream
+        KTable<String, PlayerGoals> playerGoalsTable = goalStream
                 .selectKey((matchId, goal) -> goal.getScorerId())
-                .leftJoin(playerTable, (goal, player) -> new PlayerStatistic(player).goal(goal),
+                .leftJoin(playerTable, (goal, player) -> new PlayerGoals(player).goal(goal),
                     with(String(), goalScoredSerde, playerSerde))
-                .groupByKey(Serialized.with(String(), statsSerde))
-                .reduce(PlayerStatistic::aggregate);
+                .groupByKey(Serialized.with(String(), playerGoalsSerde))
+                .reduce(PlayerGoals::aggregate, materialized(PLAYER_GOALS_STORE, playerGoalsSerde));
 
-        KTable<String, PlayerStatistic> cardPlayerTable = cardStream
-                .leftJoin(playerTable, (card, player) -> new PlayerStatistic(player).card(card),
+        KTable<String, PlayerCards> playerCardsTable = builder
+                .stream(CARD_RECEIVED_TOPIC, with(String(), cardReceivedSerde))
+                .selectKey((matchId, card) -> card.getReceiverId())
+                .leftJoin(playerTable, (card, player) -> new PlayerCards(player).card(card),
                     with(String(), cardReceivedSerde, playerSerde))
-                .groupByKey(Serialized.with(String(), statsSerde))
-                .reduce(PlayerStatistic::aggregate);
-
-        KTable<String, PlayerStatistic> statTable = goalPlayerTable
-                .outerJoin(cardPlayerTable, (stat1, stat2) -> PlayerStatistic.join(stat1, stat2),
-                    materialized(PLAYER_STATISTIC_STORE, statsSerde));
+                .groupByKey(Serialized.with(String(), playerCardsSerde))
+                .reduce(PlayerCards::aggregate, materialized(PLAYER_CARDS_STORE, playerCardsSerde));
 
         // publish changes to a view topic
-        statTable.toStream().to(PLAYER_STATISTIC_TOPIC, Produced.with(String(), statsSerde));
+        playerCardsTable.toStream().to(PLAYER_CARDS_TOPIC, Produced.with(String(), playerCardsSerde));
+
+        KStream<String, PlayerGoals> playerGoalsStream = playerGoalsTable.toStream();
+        playerGoalsStream.to(PLAYER_GOALS_TOPIC, Produced.with(String(), playerGoalsSerde));
+
+        buildTop10Scorers(playerGoalsStream);
+    }
+
+    private void buildTop10Scorers(KStream<String, PlayerGoals> playerGoalsStream) {
+        KTable<String, TopPlayers> top10Table = playerGoalsStream
+                // create a single record that includes the top scorers
+                .groupBy((playerId, playerGoals) -> "top10Scorers", Serialized.with(Serdes.String(), playerGoalsSerde))
+                .aggregate(() -> new TopPlayers(10), (playerId, playerStat, top10) -> top10.aggregate(playerStat),
+                    materialized(TOP_SCORERS_STORE, top10Serde));
+
+        top10Table.toStream().to(TOP_SCORERS_TOPIC, Produced.with(String(), top10Serde));
     }
 }

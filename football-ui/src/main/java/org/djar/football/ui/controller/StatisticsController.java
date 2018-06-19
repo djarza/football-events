@@ -1,7 +1,8 @@
 package org.djar.football.ui.controller;
 
 import org.djar.football.model.view.MatchScore;
-import org.djar.football.model.view.PlayerStatistic;
+import org.djar.football.model.view.PlayerCards;
+import org.djar.football.model.view.PlayerGoals;
 import org.djar.football.model.view.TeamRanking;
 import org.djar.football.repo.StateStoreRepository;
 import org.springframework.http.MediaType;
@@ -16,14 +17,17 @@ public class StatisticsController {
 
     private final StateStoreRepository<MatchScore> matchScoreRepo;
     private final StateStoreRepository<TeamRanking> teamRankingRepo;
-    private final StateStoreRepository<PlayerStatistic> playerStatisticRepo;
+    private final StateStoreRepository<PlayerCards> playerCardsRepo;
+    private final StateStoreRepository<PlayerGoals> playerGoalsRepo;
 
     public StatisticsController(StateStoreRepository<MatchScore> matchScoreRepo,
             StateStoreRepository<TeamRanking> teamRankingRepo,
-            StateStoreRepository<PlayerStatistic> playerStatisticRepo) {
+            StateStoreRepository<PlayerGoals> playerGoalsRepo,
+            StateStoreRepository<PlayerCards> playerCardsRepo) {
         this.matchScoreRepo = matchScoreRepo;
         this.teamRankingRepo = teamRankingRepo;
-        this.playerStatisticRepo = playerStatisticRepo;
+        this.playerGoalsRepo = playerGoalsRepo;
+        this.playerCardsRepo = playerCardsRepo;
     }
 
     @GetMapping("/matchScores")
@@ -36,8 +40,13 @@ public class StatisticsController {
         return teamRankingRepo.findAll();
     }
 
-    @GetMapping("/players")
-    public Flux<PlayerStatistic> getPlayers() {
-        return playerStatisticRepo.findAll();
+    @GetMapping("/goals")
+    public Flux<PlayerGoals> getGoals() {
+        return playerGoalsRepo.findAll();
+    }
+
+    @GetMapping("/cards")
+    public Flux<PlayerCards> getCards() {
+        return playerCardsRepo.findAll();
     }
 }

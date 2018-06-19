@@ -83,7 +83,7 @@ public class WebSocket {
     }
 
     public <T> T readLast(Class<T> payloadType, long timeout, TimeUnit unit)  {
-        Subscription subscription = Objects.requireNonNull(subscriptions.get(payloadType));
+        Subscription subscription = Objects.requireNonNull(subscriptions.get(payloadType), "No such subscription");
         return (T) subscription.getLast(timeout, unit);
     }
 
@@ -125,6 +125,10 @@ public class WebSocket {
                 }
                 if (recent == null) {
                     recent = queue.poll(timeout, unit);
+
+                    if (recent == null) {
+                        return null;
+                    }
                 }
                 return recent.call();
             } catch (Exception e) {

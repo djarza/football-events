@@ -17,7 +17,8 @@ import org.djar.football.model.event.MatchScheduled;
 import org.djar.football.model.event.MatchStarted;
 import org.djar.football.model.event.PlayerStartedCareer;
 import org.djar.football.model.view.MatchScore;
-import org.djar.football.model.view.PlayerStatistic;
+import org.djar.football.model.view.PlayerCards;
+import org.djar.football.model.view.PlayerGoals;
 import org.djar.football.model.view.TeamRanking;
 import org.djar.football.tests.FootballEcosystem;
 import org.junit.AfterClass;
@@ -91,33 +92,33 @@ public class BasicIntegrationTest {
                 + now() + "\"}", UNPROCESSABLE_ENTITY)).isEqualTo(ACCEPTED);
         assertThat(fbApp.waitForEvent(GoalScored.class).getAggId()).isEqualTo("m1");
         assertThat(fbApp.waitForWebSocketEvent(MatchScore.class).getHomeGoals()).isEqualTo(1);
-        assertThat(fbApp.waitForWebSocketEvent(PlayerStatistic.class).getGoals()).isEqualTo(1);
+        assertThat(fbApp.waitForWebSocketEvent(PlayerGoals.class).getGoals()).isEqualTo(1);
 
         assertThat(fbApp.command("http://football-match:18081/command/matches/m1/awayGoals",
             POST, "{\"id\":\"g2\", \"minute\":30, \"scorerId\":\"102\", \"reqTimestamp\":\""
                 + now() + "\"}")).isEqualTo(ACCEPTED);
         assertThat(fbApp.waitForEvent(GoalScored.class).getAggId()).isEqualTo("m1");
         assertThat(fbApp.waitForWebSocketEvent(MatchScore.class).getAwayGoals()).isEqualTo(1);
-        assertThat(fbApp.waitForWebSocketEvent(PlayerStatistic.class).getGoals()).isEqualTo(1);
+        assertThat(fbApp.waitForWebSocketEvent(PlayerGoals.class).getGoals()).isEqualTo(1);
 
         assertThat(fbApp.command("http://football-match:18081/command/matches/m1/cards",
             POST, "{\"id\":\"c1\", \"minute\":40, \"receiverId\":\"102\", \"type\":\"YELLOW\", \"reqTimestamp\":\""
                 + now() + "\"}")).isEqualTo(ACCEPTED);
         assertThat(fbApp.waitForEvent(CardReceived.class).getMatchId()).isEqualTo("m1");
-        assertThat(fbApp.waitForWebSocketEvent(PlayerStatistic.class).getYellowCards()).isEqualTo(1);
+        assertThat(fbApp.waitForWebSocketEvent(PlayerCards.class).getYellowCards()).isEqualTo(1);
 
         assertThat(fbApp.command("http://football-match:18081/command/matches/m1/cards",
             POST, "{\"id\":\"c1\", \"minute\":40, \"receiverId\":\"103\", \"type\":\"RED\", \"reqTimestamp\":\""
                 + now() + "\"}")).isEqualTo(ACCEPTED);
         assertThat(fbApp.waitForEvent(CardReceived.class).getAggId()).isEqualTo("m1");
-        assertThat(fbApp.waitForWebSocketEvent(PlayerStatistic.class).getRedCards()).isEqualTo(1);
+        assertThat(fbApp.waitForWebSocketEvent(PlayerCards.class).getRedCards()).isEqualTo(1);
 
         assertThat(fbApp.command("http://football-match:18081/command/matches/m1/homeGoals",
             POST, "{\"id\":\"g3\", \"minute\":50, \"scorerId\":\"101\", \"reqTimestamp\":\""
                 + now() + "\"}")).isEqualTo(ACCEPTED);
         assertThat(fbApp.waitForEvent(GoalScored.class).getAggId()).isEqualTo("m1");
         assertThat(fbApp.waitForWebSocketEvent(MatchScore.class).getHomeGoals()).isEqualTo(2);
-        assertThat(fbApp.waitForWebSocketEvent(PlayerStatistic.class).getGoals()).isEqualTo(2);
+        assertThat(fbApp.waitForWebSocketEvent(PlayerGoals.class).getGoals()).isEqualTo(2);
     }
 
     private void statistics() throws Exception {
@@ -129,17 +130,15 @@ public class BasicIntegrationTest {
         assertThat(matchScores[0].getAwayGoals()).isEqualTo(1);
 
         // check players
-        PlayerStatistic[] playerStats = fbApp.query("http://football-ui:18080/ui/players", PlayerStatistic[].class, 3);
-        Arrays.sort(playerStats, Comparator.comparing(PlayerStatistic::getPlayerName));
-        assertThat(playerStats[0].getGoals()).isEqualTo(2);
-        assertThat(playerStats[0].getYellowCards()).isEqualTo(0);
-        assertThat(playerStats[0].getRedCards()).isEqualTo(0);
-        assertThat(playerStats[1].getGoals()).isEqualTo(1);
-        assertThat(playerStats[1].getYellowCards()).isEqualTo(1);
-        assertThat(playerStats[1].getRedCards()).isEqualTo(0);
-        assertThat(playerStats[2].getGoals()).isEqualTo(0);
-        assertThat(playerStats[2].getYellowCards()).isEqualTo(0);
-        assertThat(playerStats[2].getRedCards()).isEqualTo(1);
+        PlayerGoals[] goals = fbApp.query("http://football-ui:18080/ui/goals", PlayerGoals[].class, 2);
+        Arrays.sort(goals, Comparator.comparing(PlayerGoals::getPlayerName));
+        assertThat(goals[0].getGoals()).isEqualTo(2);
+        assertThat(goals[1].getGoals()).isEqualTo(1);
+
+        // check players
+        PlayerCards[] cards = fbApp.query("http://football-ui:18080/ui/cards", PlayerCards[].class, 2);
+        assertThat(cards[0].getYellowCards()).isEqualTo(1);
+        assertThat(cards[1].getRedCards()).isEqualTo(1);
 
         // check teams
         TeamRanking[] teamRankings = fbApp.query("http://football-ui:18080/ui/rankings", TeamRanking[].class, 2);

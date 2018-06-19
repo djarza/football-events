@@ -26,7 +26,9 @@ services:
         fb-event.player-started-career:1:1,
         fb-view.match-score:1:1,
         fb-view.team-ranking:1:1,
-        fb-view.player-statistic:1:1,
+        fb-view.player-goals:1:1,
+        fb-view.player-cards:1:1,
+        fb-view.top-players:1:1,
         fb-connect.public.players:1:1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_BROKER_ID: 999

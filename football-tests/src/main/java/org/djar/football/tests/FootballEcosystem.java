@@ -21,8 +21,10 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.djar.football.model.event.Event;
 import org.djar.football.model.view.MatchScore;
-import org.djar.football.model.view.PlayerStatistic;
+import org.djar.football.model.view.PlayerCards;
+import org.djar.football.model.view.PlayerGoals;
 import org.djar.football.model.view.TeamRanking;
+import org.djar.football.model.view.TopPlayers;
 import org.djar.football.stream.JsonPojoSerde;
 import org.djar.football.tests.utils.DockerCompose;
 import org.djar.football.tests.utils.WebSocket;
@@ -74,7 +76,9 @@ public class FootballEcosystem {
         webSocket = new WebSocket("ws://football-ui:18080/dashboard");
         webSocket.subscribe("/topic/MatchScore", MatchScore.class);
         webSocket.subscribe("/topic/TeamRanking", TeamRanking.class);
-        webSocket.subscribe("/topic/PlayerStatistic", PlayerStatistic.class);
+        webSocket.subscribe("/topic/PlayerGoals", PlayerGoals.class);
+        webSocket.subscribe("/topic/PlayerCards", PlayerCards.class);
+        webSocket.subscribe("/topic/TopPlayers", TopPlayers.class);
 
         consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:9092");
         consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
@@ -125,15 +129,6 @@ public class FootballEcosystem {
         } while (System.currentTimeMillis() < endTime);
 
         throw new AssertionError("Response timeout, last status: " + currentStatus);
-    }
-
-    private void sleep(long time) {
-        try {
-            Thread.sleep(time);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupted();
-            throw new RuntimeException(e);
-        }
     }
 
     public HttpStatus command(String url, HttpMethod method, String json) {
@@ -207,10 +202,10 @@ public class FootballEcosystem {
         Object event = webSocket.readLast(type, EVENT_TIMEOUT, MILLISECONDS);
 
         if (event == null) {
-            throw new AssertionError("The expected WebSocket waitForEvent " + type.getSimpleName() + " was not found");
+            throw new AssertionError("The expected WebSocket event " + type.getSimpleName() + " was not found");
         }
         if (!type.isInstance(event)) {
-            throw new RuntimeException("The expected WebSocket waitForEvent is " + type.getSimpleName()
+            throw new RuntimeException("The expected WebSocket event is " + type.getSimpleName()
                 + ", but found: " + event.getClass());
         }
         return (T)event;
@@ -265,5 +260,14 @@ public class FootballEcosystem {
 
     public void executeSql(String sql) {
         postgres.update(sql);
+    }
+
+    private void sleep(long time) {
+        try {
+            Thread.sleep(time);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupted();
+            throw new RuntimeException(e);
+        }
     }
 }

@@ -11,7 +11,7 @@
     }
     .column {
         float: left;
-        width: 33.33%;
+        width: 25%;
         padding: 10px;
     }
     .row:after {
@@ -38,7 +38,7 @@
                 var matchScore = JSON.parse(payload.body);
                 var text = document.createTextNode(matchScore.homeClubId + ' vs ' + matchScore.awayClubId + ' '
                   + matchScore.homeGoals + ' : ' + matchScore.awayGoals);
-                onUpdate(matchScore.matchId, text, 'MatchScore');
+                onUpdate(matchScore.matchId, text, 'MatchScore', 30);
             });
             stompClient.subscribe('/topic/TeamRanking', function(payload) {
                 var teamRanking = JSON.parse(payload.body);
@@ -46,13 +46,17 @@
                     + teamRanking.won + ' ' + teamRanking.drawn + ' ' + teamRanking.lose + ' '
                     + teamRanking.goalsFor + ' ' + teamRanking.goalsAgainst + ' '
                     /* + teamRanking.goalsDifference + ' ' + teamRanking.points */);
-                onUpdate(teamRanking.clubId, text, 'TeamRanking');
+                onUpdate(teamRanking.clubId, text, 'TeamRanking', 1000);
             });
-            stompClient.subscribe('/topic/PlayerStatistic', function(payload) {
-                var playerStat = JSON.parse(payload.body);
-                var text = document.createTextNode(playerStat.playerName + ' ' + playerStat.goals + ' '
-                    + playerStat.yellowCards + ' ' + playerStat.redCards);
-                onUpdate(playerStat.playerId, text, 'PlayerStatistic');
+            stompClient.subscribe('/topic/PlayerCards', function(payload) {
+                var playerCards = JSON.parse(payload.body);
+                var text = document.createTextNode(playerCards.playerName + ' '
+                    + playerCards.yellowCards + ' ' + playerCards.redCards);
+                onUpdate(playerCards.playerId, text, 'PlayerCards', 30);
+            });
+            stompClient.subscribe('/topic/TopPlayers', function(payload) {
+                var top10 = JSON.parse(payload.body);
+                onUpdateTopPlayers(top10.players, 'TopPlayers');
             });
         });
     }
@@ -64,7 +68,7 @@
           JSON.stringify({'from':from, 'text':text}));
     }
 
-    function onUpdate(id, statText, type) {
+    function onUpdate(id, statText, type, limit) {
         var parent = document.getElementById(type);
         var pId = type + '_' + id;
         var p = document.getElementById(pId);
@@ -72,7 +76,11 @@
         if (p == null) {
             p = document.createElement('p');
             p.id = pId;
-            parent.appendChild(p);
+            parent.insertBefore(p, parent.firstChild);
+
+            if (parent.childElementCount > limit) {
+                parent.removeChild(parent.lastChild)
+            }
         } else {
             p.removeChild(p.childNodes[0]);
         }
@@ -83,21 +91,40 @@
         p.appendChild(statText);
         highlighted = p;
     }
+
+    function onUpdateTopPlayers(players, type) {
+        var parent = document.getElementById(type);
+
+        while (parent.firstChild) {
+            parent.removeChild(parent.firstChild);
+        }
+        for (i = 0; i < players.length; i++) {
+            var player = players[i];
+            var text = document.createTextNode(player.playerName + ' ' + player.goals);
+            var p = document.createElement('p');
+            p.appendChild(text);
+            parent.appendChild(p);
+        }
+    }
 </script>
 </head>
 <body onload="connect()">
 <div class="row">
     <div class="column">
-        <h3>Match scores</h3>
+        <h3>Latest scores</h3>
         <div id="MatchScore"></div>
     </div>
     <div class="column">
-        <h3>Team ranking</h3>
+        <h3>Teams</h3>
         <div id="TeamRanking"></div>
     </div>
     <div class="column">
-        <h3>Players</h3>
-        <div id="PlayerStatistic"></div>
+        <h3>Top 10 Scorers</h3>
+        <div id="TopPlayers"></div>
+    </div>
+    <div class="column">
+        <h3>Cards</h3>
+        <div id="PlayerCards"></div>
     </div>
 </div>
 </body>

@@ -4,7 +4,8 @@ import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
 import org.djar.football.model.view.MatchScore;
-import org.djar.football.model.view.PlayerStatistic;
+import org.djar.football.model.view.PlayerCards;
+import org.djar.football.model.view.PlayerGoals;
 import org.djar.football.model.view.TeamRanking;
 import org.djar.football.repo.StateStoreRepository;
 import org.djar.football.stream.KafkaStreamsStarter;
@@ -61,8 +62,13 @@ public class UiApplication {
     }
 
     @Bean
-    public StateStoreRepository<PlayerStatistic> playerStatisticRepo() {
-        return new StateStoreRepository<>(kafkaStreams(), StatisticsKeeper.PLAYER_STATISTIC_STORE);
+    public StateStoreRepository<PlayerGoals> playerGoalsRepo() {
+        return new StateStoreRepository<>(kafkaStreams(), StatisticsKeeper.PLAYER_GOALS_STORE);
+    }
+
+    @Bean
+    public StateStoreRepository<PlayerCards> playerCardsRepo() {
+        return new StateStoreRepository<>(kafkaStreams(), StatisticsKeeper.PLAYER_CARDS_STORE);
     }
 
     public static void main(String[] args) {
