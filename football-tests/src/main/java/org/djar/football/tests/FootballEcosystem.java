@@ -49,8 +49,9 @@ public class FootballEcosystem {
 
     private static final Logger logger = LoggerFactory.getLogger(FootballEcosystem.class);
 
-    private static final long EVENT_TIMEOUT = 10000;
-    private static final long REST_RETRY_TIMEOUT = 10000;
+    private long eventTimeout = 10000;
+    private long restTimeout = 10000;
+    private long startupTimeout = 180000;
 
     private DockerCompose dockerCompose;
     private RestTemplate rest;
@@ -60,6 +61,30 @@ public class FootballEcosystem {
     private final Properties consumerProps = new Properties();
 
     private boolean started;
+
+    public long getEventTimeout() {
+        return eventTimeout;
+    }
+
+    public void setEventTimeout(long eventTimeout) {
+        this.eventTimeout = eventTimeout;
+    }
+
+    public long getRestTimeout() {
+        return restTimeout;
+    }
+
+    public void setRestTimeout(long restTimeout) {
+        this.restTimeout = restTimeout;
+    }
+
+    public long getStartupTimeout() {
+        return startupTimeout;
+    }
+
+    public void setStartupTimeout(long startupTimeout) {
+        this.startupTimeout = startupTimeout;
+    }
 
     public void start() {
         dockerCompose = new DockerCompose()
@@ -87,7 +112,7 @@ public class FootballEcosystem {
         consumerProps.put(ConsumerConfig.CLIENT_ID_CONFIG, getClass().getName());
 
         dockerCompose.up();
-        dockerCompose.waitUntilServicesAreAvailable(180, SECONDS);
+        dockerCompose.waitUntilServicesAreAvailable(startupTimeout, MILLISECONDS);
 
         webSocket.connect();
 
@@ -116,7 +141,7 @@ public class FootballEcosystem {
     public HttpStatus command(String url, HttpMethod method, String json, HttpStatus retryStatus) {
         logger.trace(json);
         HttpStatus currentStatus;
-        long endTime = System.currentTimeMillis() + REST_RETRY_TIMEOUT;
+        long endTime = System.currentTimeMillis() + restTimeout;
 
         do {
             currentStatus = command(url, method, json);
@@ -144,7 +169,7 @@ public class FootballEcosystem {
     }
 
     public <T> T query(String url, Class<T> responseType, int expectedResultCount) throws IOException {
-        long timeout = System.currentTimeMillis() + REST_RETRY_TIMEOUT;
+        long timeout = System.currentTimeMillis() + restTimeout;
         int resultSize = -1;
 
         do {
@@ -175,7 +200,7 @@ public class FootballEcosystem {
             String topic = Topics.eventTopicName(type);
             consumer.subscribe(Collections.singletonList(topic));
             List<T> found = new ArrayList<>(expectedEventCount);
-            long timeout = EVENT_TIMEOUT;
+            long timeout = eventTimeout;
             long endTime = System.currentTimeMillis() + timeout;
 
             do {
@@ -199,7 +224,7 @@ public class FootballEcosystem {
     }
 
     public <T> T waitForWebSocketEvent(Class<T> type) {
-        Object event = webSocket.readLast(type, EVENT_TIMEOUT, MILLISECONDS);
+        Object event = webSocket.readLast(type, eventTimeout, MILLISECONDS);
 
         if (event == null) {
             throw new AssertionError("The expected WebSocket event " + type.getSimpleName() + " was not found");
@@ -212,7 +237,7 @@ public class FootballEcosystem {
     }
 
     public <T> List<T> waitForWebSocketEvent(Class<T> type, int expectedEventCount) {
-        List<T> events = webSocket.readAll(type, expectedEventCount, EVENT_TIMEOUT, TimeUnit.MILLISECONDS);
+        List<T> events = webSocket.readAll(type, expectedEventCount, eventTimeout, TimeUnit.MILLISECONDS);
 
         if (events.size() < expectedEventCount) {
             throw new RuntimeException("The expected number of WebSocket waitForEvents " + type

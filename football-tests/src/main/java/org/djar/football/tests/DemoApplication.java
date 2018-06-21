@@ -162,8 +162,35 @@ public class DemoApplication {
         return new Date(System.currentTimeMillis() + duration);
     }
 
+    private static void printUsage(FootballEcosystem fbApp, String srcFile) {
+        System.out.println("Usage:");
+        System.out.println("  java -jar football-tests-xxx [startup-timeout] [rest-timeout] [src-file]");
+        System.out.println();
+        System.out.println("  startup-timeout    Set max startup time for the whole application (default: "
+                + fbApp.getStartupTimeout() / 1000 + " s)");
+        System.out.println("  rest-timeout       Set max response time for REST commands (default: "
+                + fbApp.getRestTimeout() / 1000 + " s)");
+        System.out.println("  src-file           Specify an alternate source file (default: "
+                + srcFile + ")");
+        System.out.println();
+    }
+
     public static void main(String[] args) throws Exception {
         FootballEcosystem fbApp = new FootballEcosystem();
+        String srcFile = "EFL-Championship-2017-2018.txt";
+
+        if (args.length == 0) {
+            printUsage(fbApp, srcFile);
+        } else {
+            fbApp.setStartupTimeout(Integer.parseInt(args[0]) * 1000);
+
+            if (args.length > 1) {
+                fbApp.setRestTimeout(Integer.parseInt(args[1]) * 1000);
+            }
+            if (args.length > 2) {
+                srcFile = args[2];
+            }
+        }
         fbApp.start();
 
         logger.info("*************************************************");
@@ -171,7 +198,7 @@ public class DemoApplication {
         logger.info("*************************************************");
 
         DemoApplication gen = new DemoApplication(fbApp);
-        gen.generateFrom("EFL-Championship-2017-2018.txt");
+        gen.generateFrom(srcFile);
 
         // shutdown only if no exception
         fbApp.shutdown();
