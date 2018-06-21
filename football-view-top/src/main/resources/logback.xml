@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration scan="true" scanPeriod="5 seconds">
     <logger name="org.apache.kafka" level="warn"/>
+
+    <!-- disable https://stackoverflow.com/questions/49968123/unknown-producer-id-when-using-apache-kafka-streams-scala?rq=1 -->
+    <logger name="org.apache.kafka.clients.producer.internals.Sender" level="error"/>
+
     <logger name="org.djar" level="debug"/>
 
     <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
