@@ -15,8 +15,12 @@ public class PlayerGoals {
     }
 
     public PlayerGoals(PlayerStartedCareer player) {
-        this.playerId = player.getPlayerId();
-        this.playerName = player.getName();
+        this(player.getPlayerId(), player.getName());
+    }
+
+    public PlayerGoals(String playerId, String playerName) {
+        this.playerId = playerId;
+        this.playerName = playerName;
     }
 
     public PlayerGoals goal(GoalScored goal) {

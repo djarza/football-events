@@ -27,14 +27,14 @@ public class TopPlayers {
         return this;
     }
 
-    private void upsert(PlayerGoals playerGoals) {
-        for (PlayerGoals player : players) {
-            if (player.getPlayerId().equals(playerGoals.getPlayerId())) {
-                player.setGoals(playerGoals.getGoals());
+    private void upsert(PlayerGoals newItem) {
+        for (PlayerGoals existing : players) {
+            if (existing.getPlayerId().equals(newItem.getPlayerId())) {
+                existing.setGoals(newItem.getGoals());
                 return;
             }
         }
-        players.add(playerGoals);
+        players.add(newItem);
     }
 
     public List<PlayerGoals> getPlayers() {
