@@ -77,6 +77,8 @@ There are only two REST endpoits and both of them are accessed from the outside 
 
 ## How to run
 
+Requirements: Java 10, Docker with at least 6 GB memory limit.
+
 1. Add kafka bootstrap address to your `/etc/hosts`:
     ```
     127.0.0.1 kafka
@@ -101,6 +103,10 @@ There are only two REST endpoits and both of them are accessed from the outside 
     ```
     It will start Docker containers and wait until all microservices are ready.
     
+    If the default startup timeout (180 sec) will be insufficient, try to increase it:
+    ```
+    java -jar target/football-tests-0.0.1-SNAPSHOT-jar-with-dependencies.jar 400
+    ```    
 4. Wait a minute and launch [http://football-ui:18080/](http://football-ui:18080/). In a few seconds you should see some statistics updated in real time:
 
 &nbsp;

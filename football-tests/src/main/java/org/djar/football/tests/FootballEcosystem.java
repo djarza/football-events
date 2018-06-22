@@ -90,7 +90,8 @@ public class FootballEcosystem {
         dockerCompose = new DockerCompose()
             .addHealthCheck("http://football-match:18081/actuator/health", "\\{\"status\":\"UP\"\\}")
             .addHealthCheck("http://football-player:18082/actuator/health", "\\{\"status\":\"UP\"\\}")
-            .addHealthCheck("http://football-view:18083/actuator/health", "\\{\"status\":\"UP\"\\}")
+            .addHealthCheck("http://football-view-basic:18083/actuator/health", "\\{\"status\":\"UP\"\\}")
+            .addHealthCheck("http://football-view-top:18084/actuator/health", "\\{\"status\":\"UP\"\\}")
             .addHealthCheck("http://football-ui:18080/actuator/health", "\\{\"status\":\"UP\"\\}")
             // create the connector asap, probably before the other services
             // to avoid the problem of missing records - probably lost in the snapshot
