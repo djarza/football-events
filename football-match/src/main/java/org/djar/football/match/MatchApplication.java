@@ -61,7 +61,7 @@ public class MatchApplication {
         producerProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         producerProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonPojoSerde.class.getName());
         producerProps.put(ProducerConfig.CLIENT_ID_CONFIG, APP_ID);
-        KafkaProducer<String, Event> kafkaProducer = new KafkaProducer<>(producerProps);
+        var kafkaProducer = new KafkaProducer<String, Event>(producerProps);
         return new EventPublisher(kafkaProducer, APP_ID, apiVersion);
     }
 

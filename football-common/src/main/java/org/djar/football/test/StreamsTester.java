@@ -76,7 +76,7 @@ public class StreamsTester {
 
         for (Event event : events) {
             String topic = Topics.eventTopicName(event.getClass());
-            ConsumerRecord<byte[], byte[]> record = factory.create(topic, event.getAggId(), event);
+            var record = factory.create(topic, event.getAggId(), event);
             testDriver.pipeInput(record);
         }
     }
@@ -86,15 +86,15 @@ public class StreamsTester {
                 new StringSerializer(), new JsonPojoSerde<>());
 
         for (T message : messages) {
-            ConsumerRecord<byte[], byte[]> record = factory.create(topic, key.apply(message), message);
+            var record = factory.create(topic, key.apply(message), message);
             testDriver.pipeInput(record);
         }
     }
 
     public <T> void sendStringMessage(T key, String value, String topic) {
-        ConsumerRecordFactory<T, String> factory = new ConsumerRecordFactory<>(
+        var factory = new ConsumerRecordFactory<T, String>(
                 (Serializer<T>)Serdes.serdeFrom(key.getClass()).serializer(), new StringSerializer());
-        ConsumerRecord<byte[], byte[]> record = factory.create(topic, key, value);
+        var record = factory.create(topic, key, value);
         testDriver.pipeInput(record);
     }
 
@@ -146,7 +146,7 @@ public class StreamsTester {
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
-        Class<T[]> arrayType = (Class<T[]>) Array.newInstance(type, 0).getClass();
+        var arrayType = (Class<T[]>) Array.newInstance(type, 0).getClass();
 
         try {
             return mapper.readValue(resource.toURI().toURL(), arrayType);

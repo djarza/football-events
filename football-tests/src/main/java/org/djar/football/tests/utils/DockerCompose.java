@@ -69,14 +69,14 @@ public class DockerCompose {
     public void waitUntilServicesAreAvailable(long timeout, TimeUnit unit) {
         long healthCheckTimeout = unit.toMillis(timeout);
         RestTemplate rest = restTemplate(healthCheckTimeout);
-        Collection<Service> services = new LinkedList<>(healthChecks);
+        var services = new LinkedList<>(healthChecks);
 
         long startTime = System.currentTimeMillis();
         long maxTime = startTime + healthCheckTimeout;
         logger.info("Waiting for services to be ready (with timeout {} s)...", healthCheckTimeout / 1000);
 
         while (true) {
-            for (Iterator<Service> serviceIterator = services.iterator(); serviceIterator.hasNext();) {
+            for (var serviceIterator = services.iterator(); serviceIterator.hasNext();) {
                 Service service = serviceIterator.next();
 
                 if (serviceAvailable(rest, service.url, service.requiredResponse)) {

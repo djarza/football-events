@@ -31,7 +31,7 @@ public class WebSocket {
 
     public WebSocket(String url) {
         this.url = url;
-        List<Transport> transports = new ArrayList<>(1);
+        var transports = new ArrayList<Transport>(1);
         transports.add(new WebSocketTransport(new StandardWebSocketClient()));
         WebSocketClient webSocketClient = new SockJsClient(transports);
         client = new WebSocketStompClient(webSocketClient);
@@ -116,7 +116,7 @@ public class WebSocket {
                 Callable<T> recent = null;
 
                 while (true) {
-                    Callable<T> item = queue.poll();
+                    var item = queue.poll();
 
                     if (item == null) {
                         break;
@@ -137,13 +137,13 @@ public class WebSocket {
         }
 
         public List<T> getAll(int count, long timeout, TimeUnit unit) {
-            List<T> result = new ArrayList<>(count);
+            var result = new ArrayList<T>(count);
             long currentTimeout = unit.toMillis(timeout);
             long endTime = System.currentTimeMillis() + currentTimeout;
 
             try {
                 do {
-                    Callable<T> callable = queue.poll(timeout, TimeUnit.MILLISECONDS);
+                    var callable = queue.poll(timeout, TimeUnit.MILLISECONDS);
 
                     if (callable == null) {
                         break;

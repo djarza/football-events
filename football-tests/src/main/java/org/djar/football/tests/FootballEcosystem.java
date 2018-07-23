@@ -174,7 +174,7 @@ public class FootballEcosystem {
         int resultSize = -1;
 
         do {
-            ResponseEntity<String> response = rest.getForEntity(url, String.class);
+            var response = rest.getForEntity(url, String.class);
             logger.trace(response.getBody());
             T result = new ObjectMapper().readerFor(responseType).readValue(response.getBody());
             resultSize = ((Object[]) result).length;
@@ -194,13 +194,13 @@ public class FootballEcosystem {
     }
 
     public <T extends Event> List<T> waitForEvents(Class<T> type, int expectedEventCount) {
-        KafkaConsumer<String, T> consumer = new KafkaConsumer<>(consumerProps, new StringDeserializer(),
+        var consumer = new KafkaConsumer<String, T>(consumerProps, new StringDeserializer(),
                 new JsonPojoSerde<T>(type));
 
         try {
             String topic = Topics.eventTopicName(type);
             consumer.subscribe(Collections.singletonList(topic));
-            List<T> found = new ArrayList<>(expectedEventCount);
+            var found = new ArrayList<T>(expectedEventCount);
             long timeout = eventTimeout;
             long endTime = System.currentTimeMillis() + timeout;
 
@@ -238,7 +238,7 @@ public class FootballEcosystem {
     }
 
     public <T> List<T> waitForWebSocketEvent(Class<T> type, int expectedEventCount) {
-        List<T> events = webSocket.readAll(type, expectedEventCount, eventTimeout, TimeUnit.MILLISECONDS);
+        var events = webSocket.readAll(type, expectedEventCount, eventTimeout, TimeUnit.MILLISECONDS);
 
         if (events.size() < expectedEventCount) {
             throw new RuntimeException("The expected number of WebSocket waitForEvents " + type

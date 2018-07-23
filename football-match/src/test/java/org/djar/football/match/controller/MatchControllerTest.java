@@ -52,7 +52,7 @@ public class MatchControllerTest {
                 LocalDateTime.now()))
                 .block();
 
-        ArgumentCaptor<MatchScheduled> captor = ArgumentCaptor.forClass(MatchScheduled.class);
+        var captor = ArgumentCaptor.forClass(MatchScheduled.class);
         verify(publisher).fire(captor.capture());
         assertThat(captor.getValue().getMatchId()).isEqualTo("match1");
     }
@@ -64,7 +64,7 @@ public class MatchControllerTest {
         MatchStateRequest req = new MatchStateRequest(Match.State.STARTED.toString(), LocalDateTime.now());
         controller.setMatchState("match0", req).block();
 
-        ArgumentCaptor<MatchStarted> captor = ArgumentCaptor.forClass(MatchStarted.class);
+        var captor = ArgumentCaptor.forClass(MatchStarted.class);
         verify(publisher).fire(captor.capture());
         assertThat(captor.getValue().getMatchId()).isEqualTo("match0");
     }
@@ -73,7 +73,7 @@ public class MatchControllerTest {
     public void scoreGoalForHomeTeam() {
         controller.scoreGoalForHomeTeam("match1", new GoalRequest("goal1", 22, "player1", LocalDateTime.now())).block();
 
-        ArgumentCaptor<GoalScored> captor = ArgumentCaptor.forClass(GoalScored.class);
+        var captor = ArgumentCaptor.forClass(GoalScored.class);
         verify(publisher).fire(captor.capture());
         GoalScored event = captor.getValue();
         assertThat(event.getMatchId()).isEqualTo("match1");
@@ -84,7 +84,7 @@ public class MatchControllerTest {
     public void scoreGoalForAwayTeam() {
         controller.scoreGoalForAwayTeam("match1", new GoalRequest("goal1", 22, "player1", LocalDateTime.now())).block();
 
-        ArgumentCaptor<GoalScored> captor = ArgumentCaptor.forClass(GoalScored.class);
+        var captor = ArgumentCaptor.forClass(GoalScored.class);
         verify(publisher).fire(captor.capture());
         GoalScored event = captor.getValue();
         assertThat(event.getMatchId()).isEqualTo("match1");
@@ -102,7 +102,7 @@ public class MatchControllerTest {
         controller.receiveCard("match1", new CardRequest("card1", 33, "player1", "RED", LocalDateTime.now()))
                 .block();
 
-        ArgumentCaptor<CardReceived> captor = ArgumentCaptor.forClass(CardReceived.class);
+        var captor = ArgumentCaptor.forClass(CardReceived.class);
         verify(publisher).fire(captor.capture());
         CardReceived event = captor.getValue();
         assertThat(event.getMatchId()).isEqualTo("match1");

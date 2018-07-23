@@ -25,7 +25,7 @@ public class StateStoreRepository<T> {
 
     public Flux<T> findAll() {
         return Flux.create(sink -> {
-            KeyValueIterator<String, T> iterator = store().all();
+            var iterator = store().all();
 
             while (iterator.hasNext()) {
                 sink.next(iterator.next().value);
