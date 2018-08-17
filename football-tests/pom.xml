@@ -76,19 +76,18 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <maven.compiler.source>10</maven.compiler.source>
-        <maven.compiler.target>1.10</maven.compiler.target>
     </properties>
 
     <build>
         <plugins>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.7.0</version>
+                <version>3.8.0</version>
                 <configuration>
-                    <jdkToolchain>
-                        <version>${java.version}</version>
-                    </jdkToolchain>
+                    <source>10</source>
+                    <target>10</target>
+                    <verbose>true</verbose>
                 </configuration>
             </plugin>
             <plugin>
@@ -115,26 +114,5 @@
             </plugin>
         </plugins>
     </build>
-
-    <profiles>
-        <profile>
-            <id>extras</id>
-            <activation>
-                <os>
-                    <family>Windows</family>
-                </os>
-            </activation>
-            <properties>
-                <testcontainers.version>windows-support-SNAPSHOT</testcontainers.version>
-            </properties>
-        </profile>
-    </profiles>
-
-    <repositories>
-        <repository>
-            <id>jitpack.io</id>
-            <url>https://jitpack.io</url>
-        </repository>
-    </repositories>
 
 </project>
