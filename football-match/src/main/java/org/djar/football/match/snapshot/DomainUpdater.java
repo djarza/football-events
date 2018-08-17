@@ -37,7 +37,7 @@ public class DomainUpdater {
 
         addProcessor(topology, MatchStarted.class, (eventId, event, store) -> {
             Match match = findMatch(store, event.getMatchId());
-            match.setState(Match.State.STARTED);
+            match.start();
             store.put(match.getId(), match);
         }, MATCH_STORE);
 
@@ -64,7 +64,7 @@ public class DomainUpdater {
         addProcessor(topology, MatchFinished.class, (eventId, event, store) -> {
             Match match = (Match)Objects.requireNonNull(store.get(event.getMatchId()),
                     "Match not found: " + event.getMatchId());
-            match.setState(Match.State.FINISHED);
+            match.finish();
             store.put(match.getId(), match);
         }, MATCH_STORE);
 

@@ -59,7 +59,6 @@ public class MatchController {
             Match.State newState = Match.State.valueOf(request.getNewState());
             Match match = matchRepository.find(matchId).orElseThrow(
                     () -> new NotFoundException("Match not found", matchId));
-            match.validateTransistionTo(newState);
             Event event;
 
             if (newState == State.STARTED) {

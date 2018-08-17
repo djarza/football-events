@@ -8,18 +8,7 @@ import java.util.Objects;
 public class Match {
 
     public enum State {
-
-        SCHEDULED(null), STARTED(SCHEDULED), FINISHED(STARTED), CANCELLED(STARTED);
-
-        private final State previous;
-
-        State(State previous) {
-            this.previous = previous;
-        }
-
-        private boolean transitionAllowed(State next) {
-            return next.previous == this;
-        }
+        SCHEDULED, STARTED, FINISHED, CANCELLED;
     }
 
     private String id;
@@ -28,7 +17,8 @@ public class Match {
     private Team awayTeam;
     private State state;
 
-    private List<Goal> goals = new ArrayList<>();
+    private List<Goal> homeGoals = new ArrayList<>();
+    private List<Goal> awayGoals = new ArrayList<>();
     private List<Card> cards = new ArrayList<>();
 
     private Match() {
@@ -40,32 +30,6 @@ public class Match {
         this.homeTeam = homeTeam;
         this.awayTeam = awayTeam;
         this.state = State.SCHEDULED;
-    }
-
-    public Goal newGoal(String goalId, int minute, String scorerId, String scoredForId) {
-        Goal goal;
-
-        if (scoredForId.equals(homeTeam.getClubId())) {
-            goal = new Goal(goalId, id, minute, scorerId, homeTeam.getClubId());
-        } else if (scoredForId.equals(awayTeam.getClubId())) {
-            goal = new Goal(goalId, id, minute, scorerId, awayTeam.getClubId());
-        } else {
-            throw new IllegalArgumentException("Invalid team id: " + scoredForId);
-        }
-        goals.add(goal);
-        return goal;
-    }
-
-    public Card newRedCard(String cardId, int minute, String receiveId) {
-        Card card = new Card(cardId, id, minute, receiveId, Card.Type.RED);
-        cards.add(card);
-        return card;
-    }
-
-    public Card newYellowCard(String cardId, int minute, String receiveId) {
-        Card card = new Card(cardId, id, minute, receiveId, Card.Type.YELLOW);
-        cards.add(card);
-        return card;
     }
 
     public String getId() {
@@ -92,23 +56,63 @@ public class Match {
         return state;
     }
 
-    public List<Goal> getGoals() {
-        return goals;
+    public List<Goal> getHomeGoals() {
+        return homeGoals;
+    }
+
+    public List<Goal> getAwayGoals() {
+        return awayGoals;
     }
 
     public List<Card> getCards() {
         return cards;
     }
 
-    public void validateTransistionTo(State newState) {
-        if (!state.transitionAllowed(newState)) {
-            throw new IllegalStateException("Cannot change match state from " + state + " to " + newState
-                + ", match id: " + id);
+    public void start() {
+        if (state != State.SCHEDULED) {
+            throw new IllegalStateException("Cannot start " + state + " match");
         }
+        state = State.STARTED;
     }
 
-    public void setState(State newState) {
-        validateTransistionTo(newState);
-        this.state = newState;
+    public void finish() {
+        if (state != State.STARTED) {
+            throw new IllegalStateException("Cannot finish " + state + " match");
+        }
+        state = State.FINISHED;
+    }
+
+    public void cancel() {
+        if (state == State.FINISHED) {
+            throw new IllegalStateException("Cannot cancel match that is already finished");
+        }
+        state = State.CANCELLED;
+    }
+
+    public Goal newGoal(String goalId, int minute, String scorerId, String scoredForId) {
+        Goal goal;
+
+        if (scoredForId.equals(homeTeam.getClubId())) {
+            goal = new Goal(goalId, id, minute, scorerId, homeTeam);
+            homeGoals.add(goal);
+        } else if (scoredForId.equals(awayTeam.getClubId())) {
+            goal = new Goal(goalId, id, minute, scorerId, awayTeam);
+            awayGoals.add(goal);
+        } else {
+            throw new IllegalArgumentException("Invalid team id: " + scoredForId);
+        }
+        return goal;
+    }
+
+    public Card newRedCard(String cardId, int minute, String receiveId) {
+        Card card = new Card(cardId, id, minute, receiveId, Card.Type.RED);
+        cards.add(card);
+        return card;
+    }
+
+    public Card newYellowCard(String cardId, int minute, String receiveId) {
+        Card card = new Card(cardId, id, minute, receiveId, Card.Type.YELLOW);
+        cards.add(card);
+        return card;
     }
 }

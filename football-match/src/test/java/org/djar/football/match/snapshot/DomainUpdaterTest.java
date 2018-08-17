@@ -1,23 +1,21 @@
 package org.djar.football.match.snapshot;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
-import org.djar.football.model.event.CardReceived;
-import org.djar.football.model.event.MatchFinished;
-import org.djar.football.model.event.PlayerStartedCareer;
-import org.djar.football.match.domain.Card;
-import org.djar.football.match.domain.Goal;
 import org.djar.football.match.domain.Match;
+import org.djar.football.match.domain.Player;
+import org.djar.football.model.event.CardReceived;
 import org.djar.football.model.event.GoalScored;
+import org.djar.football.model.event.MatchFinished;
 import org.djar.football.model.event.MatchScheduled;
 import org.djar.football.model.event.MatchStarted;
-import org.djar.football.match.domain.Player;
+import org.djar.football.model.event.PlayerStartedCareer;
 import org.djar.football.test.StreamsTester;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class DomainUpdaterTest {
 
@@ -59,10 +57,14 @@ public class DomainUpdaterTest {
         assertThat(match3.getState()).isEqualTo(Match.State.STARTED);
         assertThat(match4.getState()).isEqualTo(Match.State.SCHEDULED);
 
-        assertThat(match1.getGoals().size()).isEqualTo(2);
-        assertThat(match2.getGoals().size()).isEqualTo(1);
-        assertThat(match3.getGoals().size()).isEqualTo(4);
-        assertThat(match4.getGoals().size()).isEqualTo(0);
+        assertThat(match1.getHomeGoals().size()).isEqualTo(1);
+        assertThat(match1.getAwayGoals().size()).isEqualTo(1);
+        assertThat(match2.getHomeGoals().size()).isEqualTo(1);
+        assertThat(match2.getAwayGoals().size()).isEqualTo(0);
+        assertThat(match3.getHomeGoals().size()).isEqualTo(3);
+        assertThat(match3.getAwayGoals().size()).isEqualTo(1);
+        assertThat(match4.getHomeGoals().size()).isEqualTo(0);
+        assertThat(match4.getAwayGoals().size()).isEqualTo(0);
 
         assertThat(match1.getCards().size()).isEqualTo(1);
         assertThat(match2.getCards().size()).isEqualTo(1);

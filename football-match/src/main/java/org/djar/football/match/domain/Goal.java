@@ -8,12 +8,12 @@ public class Goal {
     private String matchId;
     private int minute;
     private String scorerId;
-    private String scoredFor;
+    private Team scoredFor;
 
     private Goal() {
     }
 
-    Goal(String id, String matchId, int minute, String scorerId, String scoredFor) {
+    Goal(String id, String matchId, int minute, String scorerId, Team scoredFor) {
         this.id = Objects.requireNonNull(id);
         this.matchId = matchId;
         this.minute = minute;
@@ -41,7 +41,7 @@ public class Goal {
         return scorerId;
     }
 
-    public String getScoredFor() {
+    public Team getScoredFor() {
         return scoredFor;
     }
 }

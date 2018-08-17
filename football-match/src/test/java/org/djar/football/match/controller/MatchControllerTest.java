@@ -11,7 +11,6 @@ import java.util.Optional;
 import org.djar.football.match.domain.League;
 import org.djar.football.match.domain.Match;
 import org.djar.football.match.domain.Player;
-import org.djar.football.match.domain.Team;
 import org.djar.football.model.event.CardReceived;
 import org.djar.football.model.event.GoalScored;
 import org.djar.football.model.event.MatchScheduled;
@@ -40,7 +39,7 @@ public class MatchControllerTest {
         matchRepository = mock(StateStoreRepository.class);
         playerRepository = mock(StateStoreRepository.class);
         Match match = league.scheduleMatch("match1", LocalDateTime.now(), "t1", "t2");
-        match.setState(Match.State.STARTED);
+        match.start();
         when(matchRepository.find("match1")).thenReturn(Optional.of(match));
         when(matchRepository.find("FAKE_MATCH")).thenReturn(Optional.empty());
         when(playerRepository.find("player1")).thenReturn(
