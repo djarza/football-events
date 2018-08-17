@@ -19,7 +19,7 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class SnapshotBuilderTest {
+public class DomainUpdaterTest {
 
     private StreamsTester tester;
 
@@ -43,22 +43,29 @@ public class SnapshotBuilderTest {
         tester.sendEvents(getClass().getResource("match-finished.json"), MatchFinished.class);
 
         ReadOnlyKeyValueStore<String, Match> matchStore = tester.getStore(DomainUpdater.MATCH_STORE);
-        ReadOnlyKeyValueStore<String, Goal> goalStore = tester.getStore(DomainUpdater.GOAL_STORE);
         ReadOnlyKeyValueStore<String, Player> playerStore = tester.getStore(DomainUpdater.PLAYER_STORE);
-        ReadOnlyKeyValueStore<String, Card> cardStore = tester.getStore(DomainUpdater.CARD_STORE);
 
         assertThat(tester.count(playerStore)).isEqualTo(4);
         assertThat(playerStore.get("3").getName()).isEqualTo("Lewis McGugan");
 
         assertThat(tester.count(matchStore)).isEqualTo(4);
-        assertThat(matchStore.get("1").getState()).isEqualTo(Match.State.FINISHED);
-        assertThat(matchStore.get("2").getState()).isEqualTo(Match.State.STARTED);
-        assertThat(matchStore.get("3").getState()).isEqualTo(Match.State.STARTED);
-        assertThat(matchStore.get("4").getState()).isEqualTo(Match.State.SCHEDULED);
+        Match match1 = matchStore.get("1");
+        Match match2 = matchStore.get("2");
+        Match match3 = matchStore.get("3");
+        Match match4 = matchStore.get("4");
 
-        assertThat(tester.count(goalStore)).isEqualTo(7);
+        assertThat(match1.getState()).isEqualTo(Match.State.FINISHED);
+        assertThat(match2.getState()).isEqualTo(Match.State.STARTED);
+        assertThat(match3.getState()).isEqualTo(Match.State.STARTED);
+        assertThat(match4.getState()).isEqualTo(Match.State.SCHEDULED);
 
-        assertThat(tester.count(cardStore)).isEqualTo(2);
+        assertThat(match1.getGoals().size()).isEqualTo(2);
+        assertThat(match2.getGoals().size()).isEqualTo(1);
+        assertThat(match3.getGoals().size()).isEqualTo(4);
+        assertThat(match4.getGoals().size()).isEqualTo(0);
+
+        assertThat(match1.getCards().size()).isEqualTo(1);
+        assertThat(match2.getCards().size()).isEqualTo(1);
     }
 
     @After

@@ -11,7 +11,7 @@ public class Team {
     private Team() {
     }
 
-    public Team(String clubId) {
+    Team(String clubId) {
         this.clubId = clubId;
     }
 

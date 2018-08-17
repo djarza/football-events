@@ -17,7 +17,7 @@ public class Card {
     private Card() {
     }
 
-    public Card(String id, String matchId, int minute, String receiverId, Type type) {
+    Card(String id, String matchId, int minute, String receiverId, Type type) {
         this.id = Objects.requireNonNull(id);
         this.matchId = matchId;
         this.minute = minute;

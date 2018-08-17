@@ -5,11 +5,10 @@ import static org.djar.football.stream.StreamsUtils.addStore;
 
 import java.util.Objects;
 import org.apache.kafka.streams.Topology;
-import org.djar.football.match.domain.Card;
-import org.djar.football.match.domain.Goal;
+import org.apache.kafka.streams.state.KeyValueStore;
+import org.djar.football.match.domain.League;
 import org.djar.football.match.domain.Match;
 import org.djar.football.match.domain.Player;
-import org.djar.football.match.domain.Team;
 import org.djar.football.model.event.CardReceived;
 import org.djar.football.model.event.GoalScored;
 import org.djar.football.model.event.MatchFinished;
@@ -23,36 +22,44 @@ public class DomainUpdater {
 
     private static final Logger logger = LoggerFactory.getLogger(DomainUpdater.class);
 
+    // related league object for creating new matches
+    private final League league = new League("1", "Foo League");
+
     public static final String MATCH_STORE = "match_store";
-    public static final String GOAL_STORE = "goal_store";
-    public static final String CARD_STORE = "card_store";
     public static final String PLAYER_STORE = "player_store";
 
     public void init(Topology topology) {
         addProcessor(topology, MatchScheduled.class, (eventId, event, store) -> {
-            Match match = new Match(event.getMatchId(), event.getDate(), new Team(event.getHomeClubId()),
-                    new Team(event.getAwayClubId()));
+            Match match = league.scheduleMatch(event.getMatchId(), event.getDate(), event.getHomeClubId(),
+                    event.getAwayClubId());
             store.put(match.getId(), match);
         }, MATCH_STORE);
 
         addProcessor(topology, MatchStarted.class, (eventId, event, store) -> {
-            Match match = (Match)Objects.requireNonNull(store.get(event.getMatchId()),
-                    "Match not found: " + event.getMatchId());
+            Match match = findMatch(store, event.getMatchId());
             match.setState(Match.State.STARTED);
             store.put(match.getId(), match);
         }, MATCH_STORE);
 
         addProcessor(topology, GoalScored.class, (eventId, event, store) -> {
-            Goal goal = new Goal(event.getGoalId(), event.getMatchId(), event.getMinute(), event.getScorerId(),
+            Match match = findMatch(store, event.getMatchId());
+            match.newGoal(event.getGoalId(), event.getMinute(), event.getScorerId(),
                     event.getScoredFor());
-            store.put(goal.getId(), goal);
-        }, GOAL_STORE);
+            store.put(match.getId(), match);
+        }, MATCH_STORE);
 
         addProcessor(topology, CardReceived.class, (eventId, event, store) -> {
-            Card card = new Card(event.getCardId(), event.getMatchId(), event.getMinute(), event.getReceiverId(),
-                    Card.Type.valueOf(event.getType().name()));
-            store.put(card.getId(), card);
-        }, CARD_STORE);
+            Match match = findMatch(store, event.getMatchId());
+
+            if (event.getType() == CardReceived.Type.RED) {
+                match.newRedCard(event.getCardId(), event.getMinute(), event.getReceiverId());
+            } else if (event.getType() == CardReceived.Type.YELLOW) {
+                match.newYellowCard(event.getCardId(), event.getMinute(), event.getReceiverId());
+            } else {
+                throw new IllegalArgumentException("Invalid card type: " + event.getType());
+            }
+            store.put(match.getId(), match);
+        }, MATCH_STORE);
 
         addProcessor(topology, MatchFinished.class, (eventId, event, store) -> {
             Match match = (Match)Objects.requireNonNull(store.get(event.getMatchId()),
@@ -62,14 +69,16 @@ public class DomainUpdater {
         }, MATCH_STORE);
 
         addProcessor(topology, PlayerStartedCareer.class, (eventId, event, store) -> {
-            Player player = new Player(event.getPlayerId(), event.getName());
+            Player player = league.startCareer(event.getPlayerId(), event.getName());
             store.put(player.getId(), player);
         }, PLAYER_STORE);
 
-        addStore(topology, Match.class, MATCH_STORE,
-                new Class[] {MatchScheduled.class, MatchStarted.class, MatchFinished.class});
-        addStore(topology, Goal.class, GOAL_STORE, GoalScored.class);
-        addStore(topology, Card.class, CARD_STORE, CardReceived.class);
+        addStore(topology, Match.class, MATCH_STORE, new Class[] {
+                MatchScheduled.class, MatchStarted.class, MatchFinished.class, GoalScored.class, CardReceived.class});
         addStore(topology, Player.class, PLAYER_STORE, PlayerStartedCareer.class);
+    }
+
+    private Match findMatch(KeyValueStore<String, Object> store, String matchId) {
+        return (Match)Objects.requireNonNull(store.get(matchId), "Match not found: " + matchId);
     }
 }

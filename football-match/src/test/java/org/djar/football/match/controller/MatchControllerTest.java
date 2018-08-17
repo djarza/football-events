@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import org.djar.football.match.domain.League;
 import org.djar.football.match.domain.Match;
 import org.djar.football.match.domain.Player;
 import org.djar.football.match.domain.Team;
@@ -29,6 +30,8 @@ public class MatchControllerTest {
     private StateStoreRepository<Player> playerRepository;
     private EventPublisher publisher;
 
+    private final League league = new League("L1", "test league");
+
     @Before
     public void setUp() {
         publisher = mock(EventPublisher.class);
@@ -36,12 +39,12 @@ public class MatchControllerTest {
 
         matchRepository = mock(StateStoreRepository.class);
         playerRepository = mock(StateStoreRepository.class);
-        Match match = new Match("match1", LocalDateTime.now(), new Team("t1"), new Team("t2"));
+        Match match = league.scheduleMatch("match1", LocalDateTime.now(), "t1", "t2");
         match.setState(Match.State.STARTED);
         when(matchRepository.find("match1")).thenReturn(Optional.of(match));
         when(matchRepository.find("FAKE_MATCH")).thenReturn(Optional.empty());
         when(playerRepository.find("player1")).thenReturn(
-            Optional.of(new Player("player1", "Player Name")));
+            Optional.of(league.startCareer("player1", "Player Name")));
 
         controller = new MatchController(publisher, matchRepository, playerRepository);
     }
@@ -60,7 +63,7 @@ public class MatchControllerTest {
     @Test
     public void setMatchState() {
         when(matchRepository.find("match0")).thenReturn(
-                Optional.of(new Match("match0", LocalDateTime.now(), new Team("t1"), new Team("t2"))));
+                Optional.of(league.scheduleMatch("match0", LocalDateTime.now(), "t1", "t2")));
         MatchStateRequest req = new MatchStateRequest(Match.State.STARTED.toString(), LocalDateTime.now());
         controller.setMatchState("match0", req).block();
 

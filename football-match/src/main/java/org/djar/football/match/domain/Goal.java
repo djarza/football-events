@@ -13,7 +13,7 @@ public class Goal {
     private Goal() {
     }
 
-    public Goal(String id, String matchId, int minute, String scorerId, String scoredFor) {
+    Goal(String id, String matchId, int minute, String scorerId, String scoredFor) {
         this.id = Objects.requireNonNull(id);
         this.matchId = matchId;
         this.minute = minute;

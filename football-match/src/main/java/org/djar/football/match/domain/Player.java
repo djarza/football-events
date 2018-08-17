@@ -10,7 +10,7 @@ public class Player {
     private Player() {
     }
 
-    public Player(String id, String name) {
+    Player(String id, String name) {
         this.id = Objects.requireNonNull(id);
         this.name = name;
     }
