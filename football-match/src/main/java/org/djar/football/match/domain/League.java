@@ -11,7 +11,7 @@ public class League {
     private League() {
     }
 
-    public League(String id, String name) {
+    League(String id, String name) {
         this.id = Objects.requireNonNull(id);
         this.name = name;
     }
@@ -25,7 +25,7 @@ public class League {
     }
 
     public Match scheduleMatch(String matchId, LocalDateTime date, String homeClubId, String awayClubId) {
-        return new Match(matchId, date, new Team(homeClubId), new Team(awayClubId));
+        return new Match(matchId, id, date, new Team(homeClubId), new Team(awayClubId));
     }
 
     public Player startCareer(String playerId, String name) {

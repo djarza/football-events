@@ -9,6 +9,7 @@ import org.apache.kafka.streams.state.KeyValueStore;
 import org.djar.football.match.domain.League;
 import org.djar.football.match.domain.Match;
 import org.djar.football.match.domain.Player;
+import org.djar.football.match.repo.LeagueRepository;
 import org.djar.football.model.event.CardReceived;
 import org.djar.football.model.event.GoalScored;
 import org.djar.football.model.event.MatchFinished;
@@ -22,14 +23,18 @@ public class DomainUpdater {
 
     private static final Logger logger = LoggerFactory.getLogger(DomainUpdater.class);
 
-    // related league object for creating new matches
-    private final League league = new League("1", "Foo League");
-
     public static final String MATCH_STORE = "match_store";
     public static final String PLAYER_STORE = "player_store";
 
+    private final LeagueRepository leagueRepository;
+
+    public DomainUpdater(LeagueRepository leagueRepository) {
+        this.leagueRepository = leagueRepository;
+    }
+
     public void init(Topology topology) {
         addProcessor(topology, MatchScheduled.class, (eventId, event, store) -> {
+            League league = leagueRepository.getDefault();
             Match match = league.scheduleMatch(event.getMatchId(), event.getDate(), event.getHomeClubId(),
                     event.getAwayClubId());
             store.put(match.getId(), match);
@@ -69,6 +74,7 @@ public class DomainUpdater {
         }, MATCH_STORE);
 
         addProcessor(topology, PlayerStartedCareer.class, (eventId, event, store) -> {
+            League league = leagueRepository.getDefault();
             Player player = league.startCareer(event.getPlayerId(), event.getName());
             store.put(player.getId(), player);
         }, PLAYER_STORE);

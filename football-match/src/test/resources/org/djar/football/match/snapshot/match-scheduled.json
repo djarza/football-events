@@ -1,6 +1,6 @@
 [
-  {"metadata":null,"matchId":"1","seasonId":"Championship 2017/2018","startTime":"2017-08-04","homeClubId":"Sunderland","awayClubId":"Derby County"},
-  {"metadata":null,"matchId":"2","seasonId":"Championship 2017/2018","startTime":"2017-08-04","homeClubId":"Nottingham Forest","awayClubId":"Millwall"},
-  {"metadata":null,"matchId":"3","seasonId":"Championship 2017/2018","startTime":"2017-08-05","homeClubId":"Bristol City","awayClubId":"Barnsley"},
-  {"metadata":null,"matchId":"4","seasonId":"Championship 2017/2018","startTime":"2017-08-05","homeClubId":"Burton Albion","awayClubId":"Cardiff City"}
+  {"metadata":null,"matchId":"1","seasonId":"Championship 2017/2018","date":"2017-08-04T15:00:00","homeClubId":"Sunderland","awayClubId":"Derby County"},
+  {"metadata":null,"matchId":"2","seasonId":"Championship 2017/2018","date":"2017-08-04T15:00:00","homeClubId":"Nottingham Forest","awayClubId":"Millwall"},
+  {"metadata":null,"matchId":"3","seasonId":"Championship 2017/2018","date":"2017-08-05T18:00:00","homeClubId":"Bristol City","awayClubId":"Barnsley"},
+  {"metadata":null,"matchId":"4","seasonId":"Championship 2017/2018","date":"2017-08-05T18:00:00","homeClubId":"Burton Albion","awayClubId":"Cardiff City"}
 ]

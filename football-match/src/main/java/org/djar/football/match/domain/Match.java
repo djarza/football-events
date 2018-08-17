@@ -12,6 +12,7 @@ public class Match {
     }
 
     private String id;
+    private String leagueId;
     private LocalDateTime date;
     private Team homeTeam;
     private Team awayTeam;
@@ -24,11 +25,12 @@ public class Match {
     private Match() {
     }
 
-    Match(String id, LocalDateTime date, Team homeTeam, Team awayTeam) {
+    Match(String id, String leagueId, LocalDateTime date, Team homeTeam, Team awayTeam) {
         this.id = Objects.requireNonNull(id);
-        this.date = date;
-        this.homeTeam = homeTeam;
-        this.awayTeam = awayTeam;
+        this.leagueId = Objects.requireNonNull(leagueId);
+        this.date = Objects.requireNonNull(date);
+        this.homeTeam = Objects.requireNonNull(homeTeam);
+        this.awayTeam = Objects.requireNonNull(awayTeam);
         this.state = State.SCHEDULED;
     }
 
@@ -36,8 +38,8 @@ public class Match {
         return id;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public String getLeagueId() {
+        return leagueId;
     }
 
     public LocalDateTime getDate() {

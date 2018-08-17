@@ -9,6 +9,7 @@ import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
 import org.djar.football.match.domain.Match;
 import org.djar.football.match.domain.Player;
+import org.djar.football.match.repo.LeagueRepository;
 import org.djar.football.match.snapshot.DomainUpdater;
 import org.djar.football.model.event.Event;
 import org.djar.football.repo.StateStoreRepository;
@@ -45,7 +46,7 @@ public class MatchApplication {
     @Bean
     public KafkaStreams kafkaStreams() {
         StreamsBuilder streamsBuilder = new StreamsBuilder();
-        DomainUpdater snapshotBuilder = new DomainUpdater();
+        DomainUpdater snapshotBuilder = new DomainUpdater(leagueRepository());
         Topology topology = streamsBuilder.build();
         snapshotBuilder.init(topology);
         KafkaStreamsStarter starter = new KafkaStreamsStarter(kafkaBootstrapAddress, topology, APP_ID);
@@ -63,6 +64,11 @@ public class MatchApplication {
         producerProps.put(ProducerConfig.CLIENT_ID_CONFIG, APP_ID);
         var kafkaProducer = new KafkaProducer<String, Event>(producerProps);
         return new EventPublisher(kafkaProducer, APP_ID, apiVersion);
+    }
+
+    @Bean
+    public LeagueRepository leagueRepository() {
+        return new LeagueRepository();
     }
 
     @Bean

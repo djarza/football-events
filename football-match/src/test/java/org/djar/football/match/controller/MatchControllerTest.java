@@ -11,6 +11,7 @@ import java.util.Optional;
 import org.djar.football.match.domain.League;
 import org.djar.football.match.domain.Match;
 import org.djar.football.match.domain.Player;
+import org.djar.football.match.repo.LeagueRepository;
 import org.djar.football.model.event.CardReceived;
 import org.djar.football.model.event.GoalScored;
 import org.djar.football.model.event.MatchScheduled;
@@ -27,9 +28,8 @@ public class MatchControllerTest {
     private MatchController controller;
     private StateStoreRepository<Match> matchRepository;
     private StateStoreRepository<Player> playerRepository;
+    private LeagueRepository leagueRepository = new LeagueRepository();
     private EventPublisher publisher;
-
-    private final League league = new League("L1", "test league");
 
     @Before
     public void setUp() {
@@ -38,6 +38,7 @@ public class MatchControllerTest {
 
         matchRepository = mock(StateStoreRepository.class);
         playerRepository = mock(StateStoreRepository.class);
+        League league = leagueRepository.getDefault();
         Match match = league.scheduleMatch("match1", LocalDateTime.now(), "t1", "t2");
         match.start();
         when(matchRepository.find("match1")).thenReturn(Optional.of(match));
@@ -62,7 +63,7 @@ public class MatchControllerTest {
     @Test
     public void setMatchState() {
         when(matchRepository.find("match0")).thenReturn(
-                Optional.of(league.scheduleMatch("match0", LocalDateTime.now(), "t1", "t2")));
+                Optional.of(leagueRepository.getDefault().scheduleMatch("match0", LocalDateTime.now(), "t1", "t2")));
         MatchStateRequest req = new MatchStateRequest(Match.State.STARTED.toString(), LocalDateTime.now());
         controller.setMatchState("match0", req).block();
 
