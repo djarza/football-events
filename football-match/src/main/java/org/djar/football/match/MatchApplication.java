@@ -9,7 +9,7 @@ import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
 import org.djar.football.match.domain.Match;
 import org.djar.football.match.domain.Player;
-import org.djar.football.match.repo.LeagueRepository;
+import org.djar.football.match.repo.SeasonRepository;
 import org.djar.football.match.snapshot.DomainUpdater;
 import org.djar.football.model.event.Event;
 import org.djar.football.repo.StateStoreRepository;
@@ -67,8 +67,8 @@ public class MatchApplication {
     }
 
     @Bean
-    public LeagueRepository leagueRepository() {
-        return new LeagueRepository();
+    public SeasonRepository leagueRepository() {
+        return new SeasonRepository();
     }
 
     @Bean

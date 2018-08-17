@@ -3,15 +3,15 @@ package org.djar.football.match.domain;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-public class League {
+public class Season {
 
     private String id;
     private String name;
 
-    private League() {
+    private Season() {
     }
 
-    League(String id, String name) {
+    Season(String id, String name) {
         this.id = Objects.requireNonNull(id);
         this.name = name;
     }

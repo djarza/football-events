@@ -6,7 +6,7 @@ import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
 import org.djar.football.match.domain.Match;
 import org.djar.football.match.domain.Player;
-import org.djar.football.match.repo.LeagueRepository;
+import org.djar.football.match.repo.SeasonRepository;
 import org.djar.football.model.event.CardReceived;
 import org.djar.football.model.event.GoalScored;
 import org.djar.football.model.event.MatchFinished;
@@ -27,7 +27,7 @@ public class DomainUpdaterTest {
         tester = new StreamsTester(getClass().getName());
 
         Topology topology = new Topology();
-        new DomainUpdater(new LeagueRepository()).init(topology);
+        new DomainUpdater(new SeasonRepository()).init(topology);
 
         tester.setUp(topology);
     }

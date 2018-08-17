@@ -8,10 +8,10 @@ import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
-import org.djar.football.match.domain.League;
+import org.djar.football.match.domain.Season;
 import org.djar.football.match.domain.Match;
 import org.djar.football.match.domain.Player;
-import org.djar.football.match.repo.LeagueRepository;
+import org.djar.football.match.repo.SeasonRepository;
 import org.djar.football.model.event.CardReceived;
 import org.djar.football.model.event.GoalScored;
 import org.djar.football.model.event.MatchScheduled;
@@ -28,7 +28,7 @@ public class MatchControllerTest {
     private MatchCommandController controller;
     private StateStoreRepository<Match> matchRepository;
     private StateStoreRepository<Player> playerRepository;
-    private LeagueRepository leagueRepository = new LeagueRepository();
+    private SeasonRepository seasonRepository = new SeasonRepository();
     private EventPublisher publisher;
 
     @Before
@@ -38,13 +38,13 @@ public class MatchControllerTest {
 
         matchRepository = mock(StateStoreRepository.class);
         playerRepository = mock(StateStoreRepository.class);
-        League league = leagueRepository.getDefault();
-        Match match = league.scheduleMatch("match1", LocalDateTime.now(), "t1", "t2");
+        Season season = seasonRepository.getDefault();
+        Match match = season.scheduleMatch("match1", LocalDateTime.now(), "t1", "t2");
         match.start();
         when(matchRepository.find("match1")).thenReturn(Optional.of(match));
         when(matchRepository.find("FAKE_MATCH")).thenReturn(Optional.empty());
         when(playerRepository.find("player1")).thenReturn(
-            Optional.of(league.startCareer("player1", "Player Name")));
+            Optional.of(season.startCareer("player1", "Player Name")));
 
         controller = new MatchCommandController(publisher, matchRepository, playerRepository);
     }
@@ -63,7 +63,7 @@ public class MatchControllerTest {
     @Test
     public void setMatchState() {
         when(matchRepository.find("match0")).thenReturn(
-                Optional.of(leagueRepository.getDefault().scheduleMatch("match0", LocalDateTime.now(), "t1", "t2")));
+                Optional.of(seasonRepository.getDefault().scheduleMatch("match0", LocalDateTime.now(), "t1", "t2")));
         MatchStateRequest req = new MatchStateRequest(Match.State.STARTED.toString(), LocalDateTime.now());
         controller.setMatchState("match0", req).block();
 
