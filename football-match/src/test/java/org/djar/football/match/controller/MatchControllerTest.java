@@ -25,7 +25,7 @@ import reactor.core.publisher.Mono;
 
 public class MatchControllerTest {
 
-    private MatchController controller;
+    private MatchCommandController controller;
     private StateStoreRepository<Match> matchRepository;
     private StateStoreRepository<Player> playerRepository;
     private LeagueRepository leagueRepository = new LeagueRepository();
@@ -46,7 +46,7 @@ public class MatchControllerTest {
         when(playerRepository.find("player1")).thenReturn(
             Optional.of(league.startCareer("player1", "Player Name")));
 
-        controller = new MatchController(publisher, matchRepository, playerRepository);
+        controller = new MatchCommandController(publisher, matchRepository, playerRepository);
     }
 
     @Test

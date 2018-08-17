@@ -72,7 +72,7 @@ The prefixes above aim to separate the application topics from the internal Kafk
 
 There are only two REST endpoits and both of them are accessed from the outside of the system:
 - [Query interface](football-ui/src/main/java/org/djar/football/ui/controller/StatisticsController.java) in __football-ui__,
-- [Command interface](football-match/src/main/java/org/djar/football/match/controller/MatchController.java) in __football-match__.
+- [Command interface](football-match/src/main/java/org/djar/football/match/controller/MatchCommandController.java) in __football-match__.
 
 
 ## How to run

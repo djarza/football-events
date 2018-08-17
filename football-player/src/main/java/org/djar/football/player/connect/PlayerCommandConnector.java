@@ -15,16 +15,16 @@ import org.djar.football.util.Topics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PlayerEventProducer {
+public class PlayerCommandConnector {
 
-    private static final Logger logger = LoggerFactory.getLogger(PlayerEventProducer.class);
+    private static final Logger logger = LoggerFactory.getLogger(PlayerCommandConnector.class);
 
     private static final String CONNECT_PLAYERS_TOPIC = "fb-connect.public.players";
     private static final String PLAYER_STARTED_CAREER_TOPIC = Topics.eventTopicName(PlayerStartedCareer.class);
 
     private final EventPublisher eventPublisher;
 
-    public PlayerEventProducer(EventPublisher eventPublisher) {
+    public PlayerCommandConnector(EventPublisher eventPublisher) {
         this.eventPublisher = eventPublisher;
     }
 

@@ -8,7 +8,7 @@ import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
 import org.djar.football.model.event.Event;
-import org.djar.football.player.connect.PlayerEventProducer;
+import org.djar.football.player.connect.PlayerCommandConnector;
 import org.djar.football.player.snapshot.DomainUpdater;
 import org.djar.football.stream.EventPublisher;
 import org.djar.football.stream.JsonPojoSerde;
@@ -45,7 +45,7 @@ public class PlayerApplication {
         StreamsBuilder streamsBuilder = new StreamsBuilder();
         Topology topology = streamsBuilder.build();
         new DomainUpdater().init(topology);
-        new PlayerEventProducer(eventPublisher()).build(streamsBuilder);
+        new PlayerCommandConnector(eventPublisher()).build(streamsBuilder);
         KafkaStreamsStarter starter = new KafkaStreamsStarter(kafkaBootstrapAddress, topology, APP_ID);
         starter.setKafkaTimeout(kafkaTimeout);
         starter.setStreamsStartupTimeout(streamsStartupTimeout);

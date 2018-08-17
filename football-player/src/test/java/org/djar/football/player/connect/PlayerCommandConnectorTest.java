@@ -17,10 +17,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.util.StreamUtils;
 
-public class PlayerEventProducerTest {
+public class PlayerCommandConnectorTest {
 
     private StreamsTester tester;
-    private PlayerEventProducer producer;
+    private PlayerCommandConnector producer;
 
     @Before
     public void setUp() {
@@ -28,7 +28,7 @@ public class PlayerEventProducerTest {
 
         StreamsBuilder streamsBuilder = new StreamsBuilder();
 
-        producer = new PlayerEventProducer(new EventPublisher(null, getClass().getSimpleName(), 1));
+        producer = new PlayerCommandConnector(new EventPublisher(null, getClass().getSimpleName(), 1));
         producer.build(streamsBuilder);
 
         Topology topology = streamsBuilder.build();
