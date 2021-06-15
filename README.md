@@ -91,7 +91,10 @@ Requirements: Java 10, Docker with at least 6 GB memory limit.
     127.0.0.1 football-ui
     ```
 2. Build microservices and Docker containers:
-    ```
+   
+   ![Docker](docs/docker_setup.png)
+   If you run application via docker installed on Windows plz 'expose deamon' in docker setting
+   ```
     cd football
     mvn install
     ```
