@@ -77,7 +77,7 @@ There are only two REST endpoits and both of them are accessed from the outside 
 
 ## How to run
 
-Requirements: Java 10, Docker with at least 6 GB memory limit.
+Requirements: Java 11 (run on adopt-openjdk-11.0.11), Docker with at least 6 GB memory limit.
 
 1. Add kafka bootstrap address to your `/etc/hosts`:
     ```
@@ -91,7 +91,10 @@ Requirements: Java 10, Docker with at least 6 GB memory limit.
     127.0.0.1 football-ui
     ```
 2. Build microservices and Docker containers:
-    ```
+   
+   ![Docker](docs/docker_setup.png)
+   If you run application via docker installed on Windows plz 'expose deamon' in docker setting
+   ```
     cd football
     mvn install
     ```
